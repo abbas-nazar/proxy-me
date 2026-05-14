@@ -34,7 +34,7 @@ export type ParsedProfile = z.infer<typeof profileSchema>
 
 export async function parseCVText(text: string): Promise<ParsedProfile> {
   const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: anthropic("claude-sonnet-4-6"),
     schema: profileSchema,
     prompt: `Extract structured professional information from this CV/LinkedIn export.\n\n${text}`,
   })

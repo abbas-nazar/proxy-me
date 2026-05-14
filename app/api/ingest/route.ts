@@ -1,10 +1,16 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
-import { PDFParse } from "pdf-parse"
+import { extractText, getDocumentProxy } from "unpdf"
 import { db } from "@/lib/db"
 import { users, profileSections } from "@/db/schema"
 import { parseCVText, type ParsedProfile } from "@/lib/parser"
 import { eq } from "drizzle-orm"
+
+async function extractPdfText(arrayBuffer: ArrayBuffer): Promise<string> {
+  const pdf = await getDocumentProxy(new Uint8Array(arrayBuffer))
+  const { text } = await extractText(pdf, { mergePages: true })
+  return text
+}
 
 export async function POST(req: Request) {
   const { userId } = await auth()
@@ -18,10 +24,7 @@ export async function POST(req: Request) {
   let rawText: string
 
   if (file) {
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const parser = new PDFParse({ data: buffer })
-    const result = await parser.getText()
-    rawText = result.text
+    rawText = await extractPdfText(await file.arrayBuffer())
   } else if (manualText) {
     rawText = manualText
   } else {

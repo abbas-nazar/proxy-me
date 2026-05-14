@@ -8,7 +8,7 @@ A personal AI agent representing you: set up your profile once, share a link, an
 
 - **Framework**: Next.js 16 (App Router)
 - **Auth + slugs**: Clerk
-- **AI**: Vercel AI SDK + `claude-sonnet-4-20250514` via Anthropic SDK
+- **AI**: Vercel AI SDK + `claude-sonnet-4-6` via Anthropic SDK
 - **Database**: Neon (Postgres)
 - **ORM**: Drizzle
 - **File parsing**: `pdf-parse` (server-side only)
