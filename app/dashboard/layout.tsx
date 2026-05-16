@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/dashboard" className="font-semibold">proxy-me</Link>
           <Link href="/dashboard/sections" className="text-gray-500 hover:text-black">Profile</Link>
           <Link href="/dashboard/import" className="text-gray-500 hover:text-black">Import</Link>
-          <Link href="/settings" className="text-gray-500 hover:text-black">Settings</Link>
+          <Link href="/dashboard/settings" className="text-gray-500 hover:text-black">Settings</Link>
         </nav>
         <UserButton />
       </header>
