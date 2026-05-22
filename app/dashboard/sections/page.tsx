@@ -19,14 +19,7 @@ export default async function SectionsPage() {
         <h1 className="text-xl font-semibold">Your profile</h1>
         <span className="text-sm text-gray-400">{sections.length} section{sections.length !== 1 ? "s" : ""}</span>
       </div>
-      {sections.length === 0 ? (
-        <p className="text-gray-500 text-sm">
-          No profile data yet.{" "}
-          <a href="/onboarding" className="underline">Import your CV</a> to get started.
-        </p>
-      ) : (
-        <SectionsList sections={sections} />
-      )}
+      <SectionsList sections={sections} />
     </div>
   )
 }

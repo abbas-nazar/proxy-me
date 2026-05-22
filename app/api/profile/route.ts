@@ -20,6 +20,24 @@ export async function GET() {
   return NextResponse.json(sections)
 }
 
+export async function POST(req: Request) {
+  const { userId } = await auth()
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const [user] = await db.select().from(users).where(eq(users.clerkId, userId))
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
+
+  const { type, title, content, source } = await req.json()
+  if (!type || !content) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+
+  const [created] = await db
+    .insert(profileSections)
+    .values({ userId: user.id, type, title, content, source: source ?? "manual" })
+    .returning()
+
+  return NextResponse.json(created, { status: 201 })
+}
+
 export async function PATCH(req: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

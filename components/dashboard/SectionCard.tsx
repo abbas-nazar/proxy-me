@@ -3,6 +3,10 @@
 import { useState } from "react"
 import type { profileSections } from "@/db/schema"
 import type { InferSelectModel } from "drizzle-orm"
+import {
+  BioEditor, SkillsEditor, ExperienceEditor,
+  EducationEditor, ProjectsEditor, CustomEditor,
+} from "./SectionEditor"
 
 type Section = InferSelectModel<typeof profileSections>
 
@@ -10,6 +14,7 @@ type Props = {
   section: Section
   onDelete: (id: string) => void
   onUpdate: (updated: Section) => void
+  initialEditing?: boolean
 }
 
 function SectionContent({ type, content }: { type: string; content: unknown }) {
@@ -24,18 +29,14 @@ function SectionContent({ type, content }: { type: string; content: unknown }) {
     return (
       <div className="flex flex-wrap gap-1.5">
         {items.map((skill, i) => (
-          <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">
-            {skill}
-          </span>
+          <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">{skill}</span>
         ))}
       </div>
     )
   }
 
   if (type === "experience") {
-    const items = c.items as Array<{
-      title: string; company: string; dates: string; description: string; highlights: string[]
-    }>
+    const items = c.items as Array<{ title: string; company: string; dates: string; description: string; highlights: string[] }>
     return (
       <div className="space-y-4">
         {items.map((item, i) => (
@@ -47,9 +48,7 @@ function SectionContent({ type, content }: { type: string; content: unknown }) {
             {item.description && <p className="text-sm text-gray-600">{item.description}</p>}
             {item.highlights?.length > 0 && (
               <ul className="list-disc list-inside space-y-0.5">
-                {item.highlights.map((h, j) => (
-                  <li key={j} className="text-sm text-gray-600">{h}</li>
-                ))}
+                {item.highlights.map((h, j) => <li key={j} className="text-sm text-gray-600">{h}</li>)}
               </ul>
             )}
           </div>
@@ -85,9 +84,7 @@ function SectionContent({ type, content }: { type: string; content: unknown }) {
             {item.description && <p className="text-sm text-gray-600">{item.description}</p>}
             {item.highlights?.length > 0 && (
               <ul className="list-disc list-inside space-y-0.5">
-                {item.highlights.map((h, j) => (
-                  <li key={j} className="text-sm text-gray-600">{h}</li>
-                ))}
+                {item.highlights.map((h, j) => <li key={j} className="text-sm text-gray-600">{h}</li>)}
               </ul>
             )}
           </div>
@@ -96,13 +93,34 @@ function SectionContent({ type, content }: { type: string; content: unknown }) {
     )
   }
 
-  return <pre className="text-xs text-gray-600 whitespace-pre-wrap">{JSON.stringify(content, null, 2)}</pre>
+  if (type === "custom") {
+    return <p className="text-sm text-gray-700 whitespace-pre-wrap">{(c.text as string) ?? ""}</p>
+  }
+
+  return <p className="text-sm text-gray-700 whitespace-pre-wrap">{(c.text as string) ?? ""}</p>
 }
 
-export default function SectionCard({ section, onDelete, onUpdate }: Props) {
-  const [editing, setEditing] = useState(false)
+function SectionEditForm({
+  type, content, onChange,
+}: {
+  type: string
+  content: unknown
+  onChange: (c: unknown) => void
+}) {
+  if (type === "bio") return <BioEditor content={content as { text: string }} onChange={onChange} />
+  if (type === "skills") return <SkillsEditor content={content as { items: string[] }} onChange={onChange} />
+  if (type === "experience") return <ExperienceEditor content={content as { items: never[] }} onChange={onChange} />
+  if (type === "education") return <EducationEditor content={content as { items: never[] }} onChange={onChange} />
+  if (type === "projects") return <ProjectsEditor content={content as { items: never[] }} onChange={onChange} />
+  return <CustomEditor content={content as { text: string }} onChange={onChange} />
+}
+
+const CORE_TYPES = new Set(["bio", "experience", "education", "skills", "projects"])
+
+export default function SectionCard({ section, onDelete, onUpdate, initialEditing = false }: Props) {
+  const [editing, setEditing] = useState(initialEditing)
   const [title, setTitle] = useState(section.title ?? "")
-  const [content, setContent] = useState(JSON.stringify(section.content, null, 2))
+  const [editedContent, setEditedContent] = useState<unknown>(section.content)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState("")
@@ -111,6 +129,13 @@ export default function SectionCard({ section, onDelete, onUpdate }: Props) {
     ? new Date(section.updatedAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
     : null
 
+  function handleCancel() {
+    setEditedContent(section.content)
+    setTitle(section.title ?? "")
+    setEditing(false)
+    setError("")
+  }
+
   async function handleSave() {
     setSaving(true)
     setError("")
@@ -118,14 +143,14 @@ export default function SectionCard({ section, onDelete, onUpdate }: Props) {
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: section.id, title, content: JSON.parse(content) }),
+        body: JSON.stringify({ id: section.id, title, content: editedContent }),
       })
       if (!res.ok) throw new Error()
       const updated = await res.json()
       onUpdate(updated)
       setEditing(false)
     } catch {
-      setError("Failed to save. Check that the content is valid JSON.")
+      setError("Failed to save.")
     } finally {
       setSaving(false)
     }
@@ -147,8 +172,8 @@ export default function SectionCard({ section, onDelete, onUpdate }: Props) {
   return (
     <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-0.5">
-          {editing ? (
+        <div className="space-y-0.5 min-w-0">
+          {editing && !CORE_TYPES.has(section.type) ? (
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -165,33 +190,19 @@ export default function SectionCard({ section, onDelete, onUpdate }: Props) {
         <div className="flex gap-2 shrink-0">
           {editing ? (
             <>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="text-xs px-3 py-1 bg-black text-white rounded disabled:opacity-50"
-              >
+              <button onClick={handleSave} disabled={saving} className="text-xs px-3 py-1 bg-black text-white rounded disabled:opacity-50">
                 {saving ? "Saving…" : "Save"}
               </button>
-              <button
-                onClick={() => { setEditing(false); setError("") }}
-                className="text-xs px-3 py-1 border rounded"
-              >
+              <button onClick={handleCancel} className="text-xs px-3 py-1 border rounded">
                 Cancel
               </button>
             </>
           ) : (
             <>
-              <button
-                onClick={() => setEditing(true)}
-                className="text-xs px-3 py-1 border rounded hover:border-black"
-              >
+              <button onClick={() => setEditing(true)} className="text-xs px-3 py-1 border rounded hover:border-black">
                 Edit
               </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="text-xs px-3 py-1 border rounded text-red-500 hover:border-red-500 disabled:opacity-50"
-              >
+              <button onClick={handleDelete} disabled={deleting} className="text-xs px-3 py-1 border rounded text-red-500 hover:border-red-500 disabled:opacity-50">
                 {deleting ? "…" : "Delete"}
               </button>
             </>
@@ -200,12 +211,7 @@ export default function SectionCard({ section, onDelete, onUpdate }: Props) {
       </div>
 
       {editing ? (
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={8}
-          className="w-full border rounded px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-black"
-        />
+        <SectionEditForm type={section.type} content={editedContent} onChange={setEditedContent} />
       ) : (
         <SectionContent type={section.type} content={section.content} />
       )}

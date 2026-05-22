@@ -3,8 +3,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { users } from "@/db/schema"
 import { eq } from "drizzle-orm"
-import { completeOnboarding } from "@/app/actions/onboarding"
-import OnboardingForm from "./OnboardingForm"
+import OnboardingFlow from "./OnboardingFlow"
 
 export default async function OnboardingPage() {
   const { userId } = await auth()
@@ -16,13 +15,7 @@ export default async function OnboardingPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Set up your profile</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Choose a username — this will be your public link.
-          </p>
-        </div>
-        <OnboardingForm action={completeOnboarding} />
+        <OnboardingFlow />
       </div>
     </main>
   )
