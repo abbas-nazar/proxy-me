@@ -7,6 +7,9 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   headline: text("headline"),
   isPublic: boolean("is_public").default(true),
+  personality: text("personality"),
+  suggestedQuestions: jsonb("suggested_questions").default([]),
+  contactCollection: jsonb("contact_collection").default({ enabled: false, requireName: false, requireEmail: false }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })
 
@@ -18,6 +21,14 @@ export const profileSections = pgTable("profile_sections", {
   content: jsonb("content").notNull(),
   source: text("source").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+})
+
+export const visitorContacts = pgTable("visitor_contacts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  name: text("name"),
+  email: text("email"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })
 

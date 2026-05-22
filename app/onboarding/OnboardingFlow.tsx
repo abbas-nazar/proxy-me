@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import type { ParsedProfile } from "@/lib/parser"
 
-type Step = "slug" | "import" | "parsing" | "review"
+type Step = "slug" | "import" | "parsing" | "review" | "done"
 
 type ReviewSection = {
   key: keyof ParsedProfile
@@ -105,7 +105,7 @@ export default function OnboardingFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows }),
       })
-      router.push("/dashboard/sections")
+      setStep("done")
     } catch {
       setError("Failed to save. Please try again.")
     } finally {
@@ -187,9 +187,49 @@ export default function OnboardingFlow() {
           >
             {saving ? "Saving…" : "Save and continue"}
           </button>
-          <button onClick={() => router.push("/dashboard/sections")} className="text-sm text-gray-400 hover:text-black">
+          <button onClick={() => setStep("done")} className="text-sm text-gray-400 hover:text-black">
             Skip
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (step === "done") {
+    const publicUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${slug}`
+    return (
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold">You're all set 🎉</h2>
+          <p className="text-sm text-gray-500">Your AI twin is ready. Share your link or head to the dashboard to fill in your profile.</p>
+        </div>
+        <div className="border rounded-lg p-4 space-y-2">
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Your public link</p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-sm bg-gray-50 border rounded px-3 py-2 truncate">{publicUrl}</code>
+            <button
+              onClick={() => navigator.clipboard.writeText(publicUrl)}
+              className="text-sm px-3 py-2 border rounded hover:border-black shrink-0"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <a
+            href="/dashboard/sections"
+            className="bg-black text-white rounded-md px-5 py-2 text-sm font-medium"
+          >
+            Go to dashboard
+          </a>
+          <a
+            href={publicUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border rounded-md px-5 py-2 text-sm font-medium hover:border-black"
+          >
+            Preview my page
+          </a>
         </div>
       </div>
     )
@@ -212,7 +252,7 @@ export default function OnboardingFlow() {
         <button onClick={handleParse} className="bg-black text-white rounded-md px-5 py-2 text-sm font-medium">
           Parse CV
         </button>
-        <button onClick={() => router.push("/dashboard/sections")} className="text-sm text-gray-400 hover:text-black">
+        <button onClick={() => setStep("done")} className="text-sm text-gray-400 hover:text-black">
           Skip — add manually
         </button>
       </div>

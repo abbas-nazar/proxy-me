@@ -27,6 +27,9 @@ export default async function PublicProfilePage({ params }: Props) {
     return !latest || d > latest ? d : latest
   }, null)
 
+  const contactCollection = (user.contactCollection as { enabled: boolean; requireName: boolean; requireEmail: boolean }) ?? { enabled: false, requireName: false, requireEmail: false }
+  const suggestedQuestions = (user.suggestedQuestions as string[]) ?? []
+
   return (
     <main className="min-h-screen flex flex-col max-w-2xl mx-auto px-4 py-8">
       <div className="mb-6">
@@ -39,7 +42,11 @@ export default async function PublicProfilePage({ params }: Props) {
         )}
       </div>
       <div className="flex-1 min-h-0" style={{ height: "calc(100vh - 180px)" }}>
-        <ChatInterface slug={slug} />
+        <ChatInterface
+          slug={slug}
+          suggestedQuestions={suggestedQuestions}
+          contactCollection={contactCollection}
+        />
       </div>
     </main>
   )

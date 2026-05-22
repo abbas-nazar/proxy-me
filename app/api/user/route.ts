@@ -8,11 +8,16 @@ export async function PATCH(req: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { isPublic } = await req.json()
+  const body = await req.json()
+  const allowed = ["isPublic", "personality", "suggestedQuestions", "contactCollection", "headline"] as const
+  const patch: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (key in body) patch[key] = body[key]
+  }
 
   const [updated] = await db
     .update(users)
-    .set({ isPublic })
+    .set(patch)
     .where(eq(users.clerkId, userId))
     .returning()
 
