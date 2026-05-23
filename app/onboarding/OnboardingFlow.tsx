@@ -1,44 +1,25 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
+import TextField from "@mui/material/TextField"
+import Button from "@mui/material/Button"
+import Paper from "@mui/material/Paper"
+import CircularProgress from "@mui/material/CircularProgress"
+import InputAdornment from "@mui/material/InputAdornment"
 import type { ParsedProfile } from "@/lib/parser"
 
-type Step = "slug" | "import" | "parsing" | "review" | "done"
-
-type ReviewSection = {
-  key: keyof ParsedProfile
-  label: string
-  included: boolean
-  preview: string
-}
-
-function profileToReviewSections(profile: ParsedProfile): ReviewSection[] {
-  const sections: ReviewSection[] = []
-  if (profile.bio)
-    sections.push({ key: "bio", label: "Bio", included: true, preview: profile.bio.slice(0, 120) + (profile.bio.length > 120 ? "…" : "") })
-  if (profile.experience?.length)
-    sections.push({ key: "experience", label: `Experience (${profile.experience.length} positions)`, included: true, preview: profile.experience.map((e) => `${e.title} at ${e.company}`).join(", ") })
-  if (profile.education?.length)
-    sections.push({ key: "education", label: `Education (${profile.education.length} entries)`, included: true, preview: profile.education.map((e) => `${e.degree}, ${e.institution}`).join(", ") })
-  if (profile.skills?.length)
-    sections.push({ key: "skills", label: `Skills (${profile.skills.length})`, included: true, preview: profile.skills.slice(0, 8).join(", ") + (profile.skills.length > 8 ? "…" : "") })
-  if (profile.projects?.length)
-    sections.push({ key: "projects", label: `Projects (${profile.projects.length})`, included: true, preview: profile.projects.map((p) => p.name).join(", ") })
-  return sections
-}
+type Step = "slug" | "import" | "parsing" | "done"
 
 export default function OnboardingFlow() {
   const [step, setStep] = useState<Step>("slug")
   const [slug, setSlug] = useState("")
   const [slugError, setSlugError] = useState("")
   const [slugPending, setSlugPending] = useState(false)
-  const [profile, setProfile] = useState<ParsedProfile | null>(null)
-  const [reviewSections, setReviewSections] = useState<ReviewSection[]>([])
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [fileName, setFileName] = useState("")
   const fileRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
 
   async function handleSlugSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -74,188 +55,185 @@ export default function OnboardingFlow() {
       const res = await fetch("/api/parse", { method: "POST", body: formData })
       if (!res.ok) throw new Error()
       const parsed: ParsedProfile = await res.json()
-      setProfile(parsed)
-      setReviewSections(profileToReviewSections(parsed))
-      setStep("review")
-    } catch {
-      setStep("import")
-      setError("Failed to parse. Please try again.")
-    }
-  }
-
-  async function handleSave() {
-    if (!profile) return
-    setSaving(true)
-    setError("")
-    const included = new Set(reviewSections.filter((s) => s.included).map((s) => s.key))
-    const rows: { type: string; title: string; content: unknown; source: string }[] = []
-    if (included.has("bio") && profile.bio)
-      rows.push({ type: "bio", title: "Bio", content: { text: profile.bio }, source: "cv" })
-    if (included.has("experience") && profile.experience?.length)
-      rows.push({ type: "experience", title: "Experience", content: { items: profile.experience }, source: "cv" })
-    if (included.has("education") && profile.education?.length)
-      rows.push({ type: "education", title: "Education", content: { items: profile.education }, source: "cv" })
-    if (included.has("skills") && profile.skills?.length)
-      rows.push({ type: "skills", title: "Skills", content: { items: profile.skills }, source: "cv" })
-    if (included.has("projects") && profile.projects?.length)
-      rows.push({ type: "projects", title: "Projects", content: { items: profile.projects }, source: "cv" })
-    try {
-      await fetch("/api/profile/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows }),
-      })
+      await saveAll(parsed)
       setStep("done")
     } catch {
-      setError("Failed to save. Please try again.")
-    } finally {
-      setSaving(false)
+      setStep("import")
+      setError("Failed to parse your CV. Please try again.")
     }
   }
 
-  function toggleSection(key: keyof ParsedProfile) {
-    setReviewSections((prev) => prev.map((s) => s.key === key ? { ...s, included: !s.included } : s))
+  async function saveAll(p: ParsedProfile) {
+    const rows: { type: string; title: string; content: unknown; source: string }[] = []
+    if (p.bio)
+      rows.push({ type: "bio", title: "Bio", content: { text: p.bio }, source: "cv" })
+    if (p.experience?.length)
+      rows.push({ type: "experience", title: "Experience", content: { items: p.experience }, source: "cv" })
+    if (p.education?.length)
+      rows.push({ type: "education", title: "Education", content: { items: p.education }, source: "cv" })
+    if (p.skills?.length)
+      rows.push({ type: "skills", title: "Skills", content: { items: p.skills }, source: "cv" })
+    if (p.projects?.length)
+      rows.push({ type: "projects", title: "Projects", content: { items: p.projects }, source: "cv" })
+    await fetch("/api/profile/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows }),
+    })
   }
 
   if (step === "slug") {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Welcome to proxy-me</h1>
-          <p className="text-sm text-gray-500 mt-1">First, pick a username for your public link.</p>
-        </div>
-        <form onSubmit={handleSlugSubmit} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Username</label>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 text-sm shrink-0">proxy-me.app/</span>
-              <input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="your-name"
-                required
-                className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-              />
-            </div>
-            {slugError && <p className="text-red-500 text-sm">{slugError}</p>}
-          </div>
-          <button
-            type="submit"
-            disabled={slugPending}
-            className="w-full bg-black text-white rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
-          >
-            {slugPending ? "Setting up…" : "Continue"}
-          </button>
-        </form>
-      </div>
+      <Box component="form" onSubmit={handleSlugSubmit} sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}>Welcome to proxy-me</Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+            First, pick a username for your public link.
+          </Typography>
+        </Box>
+        <TextField
+          label="Username"
+          size="small"
+          fullWidth
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          placeholder="your-name"
+          error={!!slugError}
+          helperText={slugError || " "}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Typography variant="caption" sx={{ color: "text.disabled" }}>proxy-me.app/</Typography>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={slugPending}
+          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
+        >
+          {slugPending ? "Setting up…" : "Continue"}
+        </Button>
+      </Box>
     )
   }
 
   if (step === "parsing") {
     return (
-      <div className="flex flex-col items-center justify-center py-16 space-y-3">
-        <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-gray-500">Parsing your CV…</p>
-      </div>
-    )
-  }
-
-  if (step === "review") {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold">Review extracted sections</h2>
-          <p className="text-sm text-gray-500 mt-1">Uncheck anything you don't want to save.</p>
-        </div>
-        <div className="space-y-3">
-          {reviewSections.map((s) => (
-            <label key={s.key} className="flex items-start gap-3 border rounded-lg p-3 cursor-pointer hover:border-black transition-colors">
-              <input type="checkbox" checked={s.included} onChange={() => toggleSection(s.key)} className="mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{s.label}</p>
-                <p className="text-xs text-gray-400 truncate">{s.preview}</p>
-              </div>
-            </label>
-          ))}
-        </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <div className="flex gap-3">
-          <button
-            onClick={handleSave}
-            disabled={saving || reviewSections.every((s) => !s.included)}
-            className="bg-black text-white rounded-md px-5 py-2 text-sm font-medium disabled:opacity-50"
-          >
-            {saving ? "Saving…" : "Save and continue"}
-          </button>
-          <button onClick={() => setStep("done")} className="text-sm text-gray-400 hover:text-black">
-            Skip
-          </button>
-        </div>
-      </div>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
+        <CircularProgress size={28} sx={{ color: "black" }} />
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>Extracting your profile…</Typography>
+      </Box>
     )
   }
 
   if (step === "done") {
     const publicUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${slug}`
     return (
-      <div className="space-y-6">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold">You're all set 🎉</h2>
-          <p className="text-sm text-gray-500">Your AI twin is ready. Share your link or head to the dashboard to fill in your profile.</p>
-        </div>
-        <div className="border rounded-lg p-4 space-y-2">
-          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Your public link</p>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 text-sm bg-gray-50 border rounded px-3 py-2 truncate">{publicUrl}</code>
-            <button
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}>You're all set!</Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+            Your AI twin is ready. Review your profile or share your link.
+          </Typography>
+        </Box>
+        <Paper variant="outlined" sx={{ borderRadius: 2, p: 2 }}>
+          <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 1, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Your public link
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <Box sx={{ flex: 1, fontFamily: "monospace", fontSize: 13, bgcolor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 1, px: 1.5, py: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {publicUrl}
+            </Box>
+            <Button
+              size="small"
+              variant="outlined"
               onClick={() => navigator.clipboard.writeText(publicUrl)}
-              className="text-sm px-3 py-2 border rounded hover:border-black shrink-0"
+              sx={{ borderColor: "#e5e7eb", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
             >
               Copy
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <a
+            </Button>
+          </Box>
+        </Paper>
+        <Box sx={{ display: "flex", gap: 1.5 }}>
+          <Button
+            variant="contained"
             href="/dashboard/sections"
-            className="bg-black text-white rounded-md px-5 py-2 text-sm font-medium"
+            component="a"
+            sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
           >
-            Go to dashboard
-          </a>
-          <a
+            Review profile
+          </Button>
+          <Button
+            variant="outlined"
             href={publicUrl}
+            component="a"
             target="_blank"
             rel="noopener noreferrer"
-            className="border rounded-md px-5 py-2 text-sm font-medium hover:border-black"
+            sx={{ borderColor: "#e5e7eb", color: "text.primary", borderRadius: 2, py: 1.2 }}
           >
             Preview my page
-          </a>
-        </div>
-      </div>
+          </Button>
+        </Box>
+      </Box>
     )
   }
 
+  // import step
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Import your CV</h2>
-        <p className="text-sm text-gray-500 mt-1">Upload a PDF and Claude will extract your profile. You can also skip and add sections manually.</p>
-      </div>
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".pdf"
-        className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:border file:rounded file:text-sm file:font-medium file:cursor-pointer"
-      />
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      <div className="flex gap-3">
-        <button onClick={handleParse} className="bg-black text-white rounded-md px-5 py-2 text-sm font-medium">
-          Parse CV
-        </button>
-        <button onClick={() => setStep("done")} className="text-sm text-gray-400 hover:text-black">
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>Import your CV</Typography>
+        <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+          Upload a PDF to automatically extract your profile. You can also skip and add sections manually.
+        </Typography>
+      </Box>
+
+      <Paper
+        variant="outlined"
+        onClick={() => fileRef.current?.click()}
+        sx={{
+          borderRadius: 2, borderStyle: "dashed", p: 4,
+          textAlign: "center", cursor: "pointer",
+          "&:hover": { borderColor: "black" }, transition: "border-color 0.15s",
+        }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+          {fileName || "Click to select a PDF"}
+        </Typography>
+        {!fileName && (
+          <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mt: 0.5 }}>
+            PDF only
+          </Typography>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf"
+          style={{ display: "none" }}
+          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+        />
+      </Paper>
+
+      {error && <Typography variant="caption" sx={{ color: "error.main" }}>{error}</Typography>}
+
+      <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+        <Button
+          variant="contained"
+          onClick={handleParse}
+          disabled={!fileName}
+          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
+        >
+          Import CV
+        </Button>
+        <Button variant="text" onClick={() => setStep("done")} sx={{ color: "text.secondary" }}>
           Skip — add manually
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   )
 }

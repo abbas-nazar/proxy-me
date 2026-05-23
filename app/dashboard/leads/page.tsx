@@ -2,6 +2,14 @@ import { getOrRedirectUser } from "@/app/actions/onboarding"
 import { db } from "@/lib/db"
 import { visitorContacts, chatSessions } from "@/db/schema"
 import { eq, desc } from "drizzle-orm"
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
+import Paper from "@mui/material/Paper"
+import Table from "@mui/material/Table"
+import TableHead from "@mui/material/TableHead"
+import TableBody from "@mui/material/TableBody"
+import TableRow from "@mui/material/TableRow"
+import TableCell from "@mui/material/TableCell"
 
 export default async function LeadsPage() {
   const user = await getOrRedirectUser()
@@ -12,28 +20,54 @@ export default async function LeadsPage() {
   ])
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Leads</h1>
-        <p className="text-sm text-gray-500 mt-1">{contacts.length} contact{contacts.length !== 1 ? "s" : ""} collected.</p>
-      </div>
+    <Box sx={{ px: { xs: 3, md: 5 }, py: 4, maxWidth: 900, mx: "auto" }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.3px" }}>
+          Leads
+        </Typography>
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          {contacts.length} contact{contacts.length !== 1 ? "s" : ""} collected.
+        </Typography>
+      </Box>
 
       {contacts.length === 0 ? (
-        <div className="border border-dashed rounded-xl px-6 py-12 text-center text-gray-400 text-sm">
-          No leads yet. Enable contact collection in Settings to start capturing visitor details.
-        </div>
+        <Paper
+          variant="outlined"
+          sx={{
+            borderRadius: 2,
+            borderStyle: "dashed",
+            px: 6,
+            py: 8,
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="body2" sx={{ color: "text.disabled" }}>
+            No leads yet. Enable contact collection in Settings to start capturing visitor details.
+          </Typography>
+        </Paper>
       ) : (
-        <div className="border rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                <th className="text-left px-4 py-3">Name</th>
-                <th className="text-left px-4 py-3">Email</th>
-                <th className="text-left px-4 py-3">Date</th>
-                <th className="text-left px-4 py-3">Conversation</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+        <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: "#fafafa" }}>
+                {["Name", "Email", "Date", "Conversation"].map((col) => (
+                  <TableCell
+                    key={col}
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 11,
+                      color: "text.disabled",
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      py: 1.5,
+                    }}
+                  >
+                    {col}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {contacts.map((c) => {
                 const session = sessions.find((s) => {
                   const created = s.createdAt ? new Date(s.createdAt).getTime() : 0
@@ -41,31 +75,41 @@ export default async function LeadsPage() {
                   return Math.abs(created - contactTime) < 60 * 60 * 1000
                 })
                 return (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{c.name ?? <span className="text-gray-300">—</span>}</td>
-                    <td className="px-4 py-3 text-gray-600">{c.email ?? <span className="text-gray-300">—</span>}</td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
-                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" }) : ""}
-                    </td>
-                    <td className="px-4 py-3">
+                  <TableRow key={c.id} hover>
+                    <TableCell sx={{ fontWeight: 500, fontSize: 13 }}>
+                      {c.name ?? <Typography component="span" sx={{ color: "text.disabled" }}>—</Typography>}
+                    </TableCell>
+                    <TableCell sx={{ color: "text.secondary", fontSize: 13 }}>
+                      {c.email ?? <Typography component="span" sx={{ color: "text.disabled" }}>—</Typography>}
+                    </TableCell>
+                    <TableCell sx={{ color: "text.disabled", fontSize: 12 }}>
+                      {c.createdAt
+                        ? new Date(c.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
+                        : ""}
+                    </TableCell>
+                    <TableCell>
                       {session ? (
-                        <a
+                        <Typography
+                          component="a"
                           href={`/dashboard/conversations#session-${session.id}`}
-                          className="text-xs text-black underline underline-offset-2 hover:opacity-60"
+                          variant="caption"
+                          sx={{ color: "text.primary", textDecoration: "underline", textUnderlineOffset: 2, "&:hover": { opacity: 0.6 } }}
                         >
                           View chat
-                        </a>
+                        </Typography>
                       ) : (
-                        <span className="text-gray-300 text-xs">—</span>
+                        <Typography component="span" variant="caption" sx={{ color: "text.disabled" }}>
+                          —
+                        </Typography>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Paper>
       )}
-    </div>
+    </Box>
   )
 }

@@ -52,8 +52,8 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
     setItems((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
   }
 
-  function handleAdd(section: Section) {
-    setNewlyCreatedId(section.id)
+  function handleAdd(section: Section, openEditor = false) {
+    if (openEditor) setNewlyCreatedId(section.id)
     setItems((prev) => [...prev, section])
   }
 
@@ -85,7 +85,7 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
         ) : (
           <div key={type} className="space-y-2">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">{title}</h2>
-            <EmptySectionCard type={type} title={title} onSave={handleAdd} />
+            <EmptySectionCard type={type} title={title} onSave={(s) => handleAdd(s, true)} />
           </div>
         )
       )}

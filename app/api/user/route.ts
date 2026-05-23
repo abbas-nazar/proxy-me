@@ -9,11 +9,16 @@ export async function PATCH(req: Request) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = await req.json()
-  const allowed = ["isPublic", "personality", "suggestedQuestions", "contactCollection", "headline"] as const
-  const patch: Record<string, unknown> = {}
-  for (const key of allowed) {
-    if (key in body) patch[key] = body[key]
-  }
+
+  const patch: Partial<typeof users.$inferInsert> = {}
+  if ("isPublic" in body) patch.isPublic = body.isPublic
+  if ("personality" in body) patch.personality = body.personality
+  if ("suggestedQuestions" in body) patch.suggestedQuestions = body.suggestedQuestions
+  if ("contactCollection" in body) patch.contactCollection = body.contactCollection
+  if ("headline" in body) patch.headline = body.headline
+
+  if (Object.keys(patch).length === 0)
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
 
   const [updated] = await db
     .update(users)

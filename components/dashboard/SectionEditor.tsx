@@ -35,15 +35,12 @@ function field(label: string, value: string, onChange: (v: string) => void, mult
 
 export function BioEditor({ content, onChange }: { content: { text: string }; onChange: (c: unknown) => void }) {
   return (
-    <div className="space-y-1">
-      <label className="text-xs text-gray-500">Bio</label>
-      <textarea
-        rows={4}
-        value={content.text}
-        onChange={(e) => onChange({ text: e.target.value })}
-        className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-black"
-      />
-    </div>
+    <textarea
+      rows={4}
+      value={content.text}
+      onChange={(e) => onChange({ text: e.target.value })}
+      className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-black"
+    />
   )
 }
 
@@ -52,7 +49,7 @@ export function SkillsEditor({ content, onChange }: { content: { items: string[]
 
   return (
     <div className="space-y-1">
-      <label className="text-xs text-gray-500">Skills (comma-separated)</label>
+      <label className="text-xs text-gray-500">Comma-separated</label>
       <textarea
         rows={3}
         value={raw}

@@ -11,6 +11,8 @@ export async function POST(req: Request) {
 
   if (!slug)
     return NextResponse.json({ error: "Missing slug" }, { status: 400 })
+  if (!sessionId)
+    return NextResponse.json({ error: "Missing sessionId" }, { status: 400 })
 
   const [user] = await db.select().from(users).where(eq(users.slug, slug))
   if (!user)

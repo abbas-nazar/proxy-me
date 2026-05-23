@@ -1,86 +1,134 @@
-import { getOrRedirectUser } from "@/app/actions/onboarding"
-import { db } from "@/lib/db"
-import { chatSessions, visitorContacts } from "@/db/schema"
-import { eq, desc } from "drizzle-orm"
-import Link from "next/link"
+"use client"
+
+import { useEffect, useState } from "react"
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
+import Paper from "@mui/material/Paper"
+import Collapse from "@mui/material/Collapse"
+import Chip from "@mui/material/Chip"
+import IconButton from "@mui/material/IconButton"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined"
 
 type Message = { role: "user" | "assistant"; content: string }
 
-export default async function ConversationsPage() {
-  const user = await getOrRedirectUser()
+type Session = {
+  id: string
+  messages: Message[]
+  createdAt: string | null
+  updatedAt: string | null
+}
 
-  const [sessions, contacts] = await Promise.all([
-    db.select().from(chatSessions).where(eq(chatSessions.userId, user.id)).orderBy(desc(chatSessions.updatedAt)),
-    db.select().from(visitorContacts).where(eq(visitorContacts.userId, user.id)).orderBy(desc(visitorContacts.createdAt)),
-  ])
+function ConversationRow({ session }: { session: Session }) {
+  const [open, setOpen] = useState(false)
+  const messages = session.messages ?? []
+  const firstUserMsg = messages.find((m) => m.role === "user")
+  const msgCount = messages.length
+  const date = session.updatedAt
+    ? new Date(session.updatedAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
+    : ""
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Conversations</h1>
-        <p className="text-sm text-gray-500 mt-1">{sessions.length} conversation{sessions.length !== 1 ? "s" : ""} so far.</p>
-      </div>
+    <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+      <Box
+        onClick={() => setOpen((v) => !v)}
+        sx={{
+          display: "flex", alignItems: "center", gap: 2, px: 2.5, py: 2,
+          cursor: "pointer", userSelect: "none",
+          "&:hover": { bgcolor: "#fafafa" },
+          transition: "background 0.15s",
+        }}
+      >
+        <ChatBubbleOutlineOutlinedIcon sx={{ fontSize: 16, color: "text.disabled", flexShrink: 0 }} />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+          >
+            {firstUserMsg?.content ?? "Empty conversation"}
+          </Typography>
+        </Box>
+        <Chip
+          label={`${msgCount} msg${msgCount !== 1 ? "s" : ""}`}
+          size="small"
+          variant="outlined"
+          sx={{ fontSize: 11, height: 20, flexShrink: 0 }}
+        />
+        <Typography variant="caption" sx={{ color: "text.disabled", flexShrink: 0, minWidth: 72, textAlign: "right" }}>
+          {date}
+        </Typography>
+        <IconButton size="small" sx={{ flexShrink: 0, ml: -0.5 }}>
+          {open ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+        </IconButton>
+      </Box>
 
-      {contacts.length > 0 && (
-        <div className="border rounded-xl p-4 space-y-3">
-          <h2 className="text-sm font-semibold">Collected contacts</h2>
-          <div className="divide-y">
-            {contacts.map((c) => {
-              const session = sessions.find((s) => {
-                const created = s.createdAt ? new Date(s.createdAt).getTime() : 0
-                const contactTime = c.createdAt ? new Date(c.createdAt).getTime() : 0
-                return Math.abs(created - contactTime) < 60 * 60 * 1000
-              })
-              return (
-                <div key={c.id} className="py-2 flex items-center gap-4 text-sm">
-                  {c.name && <span className="font-medium">{c.name}</span>}
-                  {c.email && <span className="text-gray-500">{c.email}</span>}
-                  <span className="text-xs text-gray-400 ml-auto">
-                    {c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" }) : ""}
-                  </span>
-                  {session && (
-                    <a href={`#session-${session.id}`} className="text-xs text-black underline underline-offset-2 hover:opacity-60 shrink-0">
-                      View chat
-                    </a>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
+      <Collapse in={open}>
+        <Box sx={{ borderTop: "1px solid", borderColor: "divider", px: 2.5, py: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+          {messages.map((m, i) => (
+            <Box key={i} sx={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+              <Box
+                sx={{
+                  fontSize: 13,
+                  px: 1.5, py: 1,
+                  borderRadius: 2,
+                  maxWidth: "80%",
+                  bgcolor: m.role === "user" ? "#111" : "#f3f4f6",
+                  color: m.role === "user" ? "white" : "#374151",
+                  lineHeight: 1.55,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {m.content}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Collapse>
+    </Paper>
+  )
+}
+
+export default function ConversationsPage() {
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/conversations")
+      .then((r) => r.json())
+      .then((data) => setSessions(data.sessions ?? []))
+      .finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <Box sx={{ px: { xs: 3, md: 5 }, py: 4, maxWidth: 900, mx: "auto" }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.3px" }}>
+          Conversations
+        </Typography>
+        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+          {loading ? "Loading…" : `${sessions.length} conversation${sessions.length !== 1 ? "s" : ""} so far.`}
+        </Typography>
+      </Box>
+
+      {!loading && sessions.length === 0 && (
+        <Paper
+          variant="outlined"
+          sx={{ borderRadius: 2, borderStyle: "dashed", px: 6, py: 8, textAlign: "center" }}
+        >
+          <Typography variant="body2" sx={{ color: "text.disabled" }}>
+            No conversations yet. Share your link to get started.
+          </Typography>
+        </Paper>
       )}
 
-      {sessions.length === 0 ? (
-        <div className="border border-dashed rounded-xl px-6 py-12 text-center text-gray-400 text-sm">
-          No conversations yet. Share your link to get started.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sessions.map((session) => {
-            const messages = (session.messages as Message[]) ?? []
-            const msgCount = messages.length
-            return (
-              <div key={session.id} id={`session-${session.id}`} className="border rounded-xl p-4 space-y-2 scroll-mt-6">
-                <div className="flex items-center justify-between text-xs text-gray-400">
-                  <span>{msgCount} message{msgCount !== 1 ? "s" : ""}</span>
-                  <span>
-                    {session.updatedAt ? new Date(session.updatedAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" }) : ""}
-                  </span>
-                </div>
-                {messages.length > 0 && (
-                  <div className="space-y-1 pt-1 max-h-48 overflow-y-auto">
-                    {messages.map((m, i) => (
-                      <div key={i} className={`text-xs px-3 py-1.5 rounded-lg max-w-[85%] ${m.role === "user" ? "bg-black text-white ml-auto" : "bg-gray-100 text-gray-800"}`}>
-                        {m.content}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+      {!loading && sessions.length > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+          {sessions.map((session) => (
+            <ConversationRow key={session.id} session={session} />
+          ))}
+        </Box>
       )}
-    </div>
+    </Box>
   )
 }

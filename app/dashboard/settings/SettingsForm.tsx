@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Switch from "@mui/material/Switch"
@@ -12,6 +13,7 @@ import FormControlLabel from "@mui/material/FormControlLabel"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import CheckIcon from "@mui/icons-material/Check"
 import AddIcon from "@mui/icons-material/Add"
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 
 type ContactCollection = { enabled: boolean; requireName: boolean; requireEmail: boolean }
 
@@ -37,6 +39,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 }
 
 export default function SettingsForm({ user }: Props) {
+  const router = useRouter()
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${user.slug}` : `/${user.slug}`
 
   const [isPublic, setIsPublic] = useState(user.isPublic)
@@ -55,6 +58,10 @@ export default function SettingsForm({ user }: Props) {
   const [contact, setContact] = useState<ContactCollection>(user.contactCollection)
   const [savingContact, setSavingContact] = useState(false)
   const [contactSaved, setContactSaved] = useState(false)
+
+  const [deleteSlug, setDeleteSlug] = useState("")
+  const [deleteError, setDeleteError] = useState("")
+  const [deleting, setDeleting] = useState(false)
 
   async function patch(body: Record<string, unknown>) {
     await fetch("/api/user", {
@@ -93,6 +100,29 @@ export default function SettingsForm({ user }: Props) {
       setTimeout(() => setQuestionsSaved(false), 2000)
     } finally {
       setSavingQuestions(false)
+    }
+  }
+
+  async function deleteAccount() {
+    if (deleteSlug !== user.slug) {
+      setDeleteError(`Type your handle "${user.slug}" to confirm.`)
+      return
+    }
+    setDeleting(true)
+    setDeleteError("")
+    try {
+      const res = await fetch("/api/user/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: deleteSlug }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setDeleteError(data.error ?? "Failed to delete."); return }
+      router.push("/sign-in")
+    } catch {
+      setDeleteError("Something went wrong.")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -154,7 +184,7 @@ export default function SettingsForm({ user }: Props) {
             variant="outlined"
             onClick={copyLink}
             startIcon={copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
-            sx={{ borderColor: "#e5e7eb", color: "text.primary", whiteSpace: "nowrap" }}
+            sx={{ borderColor: "#e5e7eb", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
           >
             {copied ? "Copied!" : "Copy"}
           </Button>
@@ -200,7 +230,7 @@ export default function SettingsForm({ user }: Props) {
             />
           ))}
         </Box>
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 1, mb: 2, alignItems: "center" }}>
           <TextField
             size="small"
             fullWidth
@@ -214,7 +244,7 @@ export default function SettingsForm({ user }: Props) {
             size="small"
             onClick={addQuestion}
             disabled={!newQuestion.trim()}
-            sx={{ borderColor: "#e5e7eb", color: "text.primary", minWidth: 40 }}
+            sx={{ borderColor: "#e5e7eb", color: "text.primary", minWidth: 40, height: 40, flexShrink: 0 }}
           >
             <AddIcon fontSize="small" />
           </Button>
@@ -253,6 +283,42 @@ export default function SettingsForm({ user }: Props) {
             {contactSaved ? "Saved!" : savingContact ? "Saving…" : "Save"}
           </Button>
         </Box>
+      </Section>
+
+      {/* Danger Zone */}
+      <Section title="Danger Zone" subtitle="Permanently delete your account and all data. This cannot be undone.">
+        <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
+          Type your handle{" "}
+          <Box component="code" sx={{ bgcolor: "#f3f4f6", px: 0.75, py: 0.25, borderRadius: 1, fontSize: 12 }}>
+            {user.slug}
+          </Box>{" "}
+          to confirm.
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", flexWrap: "wrap" }}>
+          <TextField
+            size="small"
+            placeholder={user.slug}
+            value={deleteSlug}
+            onChange={(e) => { setDeleteSlug(e.target.value); setDeleteError("") }}
+            sx={{ width: 200 }}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            color="error"
+            startIcon={<DeleteForeverIcon fontSize="small" />}
+            onClick={deleteAccount}
+            disabled={deleting}
+            sx={{ height: 40, flexShrink: 0 }}
+          >
+            {deleting ? "Deleting…" : "Delete account"}
+          </Button>
+        </Box>
+        {deleteError && (
+          <Typography variant="caption" sx={{ color: "error.main", display: "block", mt: 1 }}>
+            {deleteError}
+          </Typography>
+        )}
       </Section>
 
     </Box>

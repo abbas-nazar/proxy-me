@@ -3,6 +3,12 @@
 import { useState } from "react"
 import type { profileSections } from "@/db/schema"
 import type { InferSelectModel } from "drizzle-orm"
+import Box from "@mui/material/Box"
+import Paper from "@mui/material/Paper"
+import Typography from "@mui/material/Typography"
+import Button from "@mui/material/Button"
+import Chip from "@mui/material/Chip"
+import TextField from "@mui/material/TextField"
 import {
   BioEditor, SkillsEditor, ExperienceEditor,
   EducationEditor, ProjectsEditor, CustomEditor,
@@ -21,83 +27,108 @@ function SectionContent({ type, content }: { type: string; content: unknown }) {
   const c = content as Record<string, unknown>
 
   if (type === "bio") {
-    return <p className="text-sm text-gray-700">{c.text as string}</p>
+    return (
+      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+        {c.text as string}
+      </Typography>
+    )
   }
 
   if (type === "skills") {
     const items = c.items as string[]
     return (
-      <div className="flex flex-wrap gap-1.5">
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
         {items.map((skill, i) => (
-          <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">{skill}</span>
+          <Chip key={i} label={skill} size="small" variant="outlined" sx={{ fontSize: 11 }} />
         ))}
-      </div>
+      </Box>
     )
   }
 
   if (type === "experience") {
     const items = c.items as Array<{ title: string; company: string; dates: string; description: string; highlights: string[] }>
     return (
-      <div className="space-y-4">
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {items.map((item, i) => (
-          <div key={i} className="space-y-1">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-medium">{item.title} · {item.company}</p>
-              <span className="text-xs text-gray-400 shrink-0">{item.dates}</span>
-            </div>
-            {item.description && <p className="text-sm text-gray-600">{item.description}</p>}
-            {item.highlights?.length > 0 && (
-              <ul className="list-disc list-inside space-y-0.5">
-                {item.highlights.map((h, j) => <li key={j} className="text-sm text-gray-600">{h}</li>)}
-              </ul>
+          <Box key={i}>
+            <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {item.title} · {item.company}
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.disabled", whiteSpace: "nowrap" }}>
+                {item.dates}
+              </Typography>
+            </Box>
+            {item.description && (
+              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
+                {item.description}
+              </Typography>
             )}
-          </div>
+            {item.highlights?.length > 0 && (
+              <Box component="ul" sx={{ pl: 2, mt: 0.5, mb: 0 }}>
+                {item.highlights.map((h, j) => (
+                  <Box component="li" key={j}>
+                    <Typography variant="body2" sx={{ color: "text.secondary" }}>{h}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
         ))}
-      </div>
+      </Box>
     )
   }
 
   if (type === "education") {
     const items = c.items as Array<{ degree: string; institution: string; dates: string }>
     return (
-      <div className="space-y-2">
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {items.map((item, i) => (
-          <div key={i} className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-sm font-medium">{item.degree}</p>
-              <p className="text-sm text-gray-500">{item.institution}</p>
-            </div>
-            <span className="text-xs text-gray-400 shrink-0">{item.dates}</span>
-          </div>
+          <Box key={i} sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.degree}</Typography>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>{item.institution}</Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: "text.disabled", whiteSpace: "nowrap" }}>
+              {item.dates}
+            </Typography>
+          </Box>
         ))}
-      </div>
+      </Box>
     )
   }
 
   if (type === "projects") {
     const items = c.items as Array<{ name: string; description: string; highlights: string[] }>
     return (
-      <div className="space-y-4">
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {items.map((item, i) => (
-          <div key={i} className="space-y-1">
-            <p className="text-sm font-medium">{item.name}</p>
-            {item.description && <p className="text-sm text-gray-600">{item.description}</p>}
-            {item.highlights?.length > 0 && (
-              <ul className="list-disc list-inside space-y-0.5">
-                {item.highlights.map((h, j) => <li key={j} className="text-sm text-gray-600">{h}</li>)}
-              </ul>
+          <Box key={i}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.name}</Typography>
+            {item.description && (
+              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>{item.description}</Typography>
             )}
-          </div>
+            {item.highlights?.length > 0 && (
+              <Box component="ul" sx={{ pl: 2, mt: 0.5, mb: 0 }}>
+                {item.highlights.map((h, j) => (
+                  <Box component="li" key={j}>
+                    <Typography variant="body2" sx={{ color: "text.secondary" }}>{h}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
         ))}
-      </div>
+      </Box>
     )
   }
 
-  if (type === "custom") {
-    return <p className="text-sm text-gray-700 whitespace-pre-wrap">{(c.text as string) ?? ""}</p>
-  }
-
-  return <p className="text-sm text-gray-700 whitespace-pre-wrap">{(c.text as string) ?? ""}</p>
+  // custom / fallback
+  return (
+    <Typography variant="body2" sx={{ color: "text.secondary", whiteSpace: "pre-wrap" }}>
+      {(c.text as string) ?? ""}
+    </Typography>
+  )
 }
 
 function SectionEditForm({
@@ -170,53 +201,61 @@ export default function SectionCard({ section, onDelete, onUpdate, initialEditin
   }
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-0.5 min-w-0">
-          {editing && !CORE_TYPES.has(section.type) ? (
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border rounded px-2 py-1 text-sm w-full"
-            />
-          ) : (
-            <p className="font-medium text-sm">{section.title ?? section.type}</p>
-          )}
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span className="border rounded px-1.5 py-0.5">{section.source}</span>
-            {updatedAt && <span>Updated {updatedAt}</span>}
-          </div>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          {editing ? (
-            <>
-              <button onClick={handleSave} disabled={saving} className="text-xs px-3 py-1 bg-black text-white rounded disabled:opacity-50">
-                {saving ? "Saving…" : "Save"}
-              </button>
-              <button onClick={handleCancel} className="text-xs px-3 py-1 border rounded">
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={() => setEditing(true)} className="text-xs px-3 py-1 border rounded hover:border-black">
-                Edit
-              </button>
-              <button onClick={handleDelete} disabled={deleting} className="text-xs px-3 py-1 border rounded text-red-500 hover:border-red-500 disabled:opacity-50">
-                {deleting ? "…" : "Delete"}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+    <Paper variant="outlined" sx={{ borderRadius: 2, p: 2.5 }}>
+      {/* Meta row: chip + date */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5, flexWrap: "wrap" }}>
+        <Chip label={section.source} size="small" variant="outlined" sx={{ fontSize: 10, height: 18, "& .MuiChip-label": { px: 0.75 } }} />
+        {updatedAt && (
+          <Typography variant="caption" sx={{ color: "text.disabled" }}>
+            Updated {updatedAt}
+          </Typography>
+        )}
+      </Box>
 
+      {/* Edit mode: title field */}
+      {editing && !CORE_TYPES.has(section.type) && (
+        <TextField value={title} onChange={(e) => setTitle(e.target.value)} size="small" fullWidth sx={{ mb: 2 }} />
+      )}
+
+      {/* Content or editor */}
       {editing ? (
         <SectionEditForm type={section.type} content={editedContent} onChange={setEditedContent} />
       ) : (
         <SectionContent type={section.type} content={section.content} />
       )}
 
-      {error && <p className="text-red-500 text-xs">{error}</p>}
-    </div>
+      {error && (
+        <Typography variant="caption" sx={{ color: "error.main", display: "block", mt: 1 }}>
+          {error}
+        </Typography>
+      )}
+
+      {/* Action buttons at bottom */}
+      <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+        {editing ? (
+          <>
+            <Button size="small" variant="contained" onClick={handleSave} disabled={saving}
+              sx={{ bgcolor: "#111", "&:hover": { bgcolor: "#333" }, fontSize: 12 }}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
+            <Button size="small" variant="outlined" onClick={handleCancel}
+              sx={{ fontSize: 12, borderColor: "#e5e7eb", color: "text.primary" }}>
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button size="small" variant="outlined" onClick={() => setEditing(true)}
+              sx={{ fontSize: 12, borderColor: "#e5e7eb", color: "text.primary", "&:hover": { borderColor: "#111" } }}>
+              Edit
+            </Button>
+            <Button size="small" variant="outlined" onClick={handleDelete} disabled={deleting}
+              sx={{ fontSize: 12, borderColor: "#e5e7eb", color: "error.main", "&:hover": { borderColor: "error.main" } }}>
+              {deleting ? "…" : "Delete"}
+            </Button>
+          </>
+        )}
+      </Box>
+    </Paper>
   )
 }

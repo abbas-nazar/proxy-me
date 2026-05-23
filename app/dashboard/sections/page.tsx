@@ -2,6 +2,8 @@ import { getOrRedirectUser } from "@/app/actions/onboarding"
 import { db } from "@/lib/db"
 import { profileSections } from "@/db/schema"
 import { eq } from "drizzle-orm"
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
 import SectionsList from "@/components/dashboard/SectionsList"
 
 export default async function SectionsPage() {
@@ -14,12 +16,16 @@ export default async function SectionsPage() {
     .orderBy(profileSections.createdAt)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Your profile</h1>
-        <span className="text-sm text-gray-400">{sections.length} section{sections.length !== 1 ? "s" : ""}</span>
-      </div>
+    <Box sx={{ px: { xs: 3, md: 5 }, py: 4, maxWidth: 900, mx: "auto" }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.3px" }}>
+          Your profile
+        </Typography>
+        <Typography variant="caption" sx={{ color: "text.disabled" }}>
+          {sections.length} section{sections.length !== 1 ? "s" : ""}
+        </Typography>
+      </Box>
       <SectionsList sections={sections} />
-    </div>
+    </Box>
   )
 }

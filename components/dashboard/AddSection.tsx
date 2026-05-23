@@ -3,6 +3,13 @@
 import { useState } from "react"
 import type { profileSections } from "@/db/schema"
 import type { InferSelectModel } from "drizzle-orm"
+import Box from "@mui/material/Box"
+import Paper from "@mui/material/Paper"
+import Button from "@mui/material/Button"
+import Typography from "@mui/material/Typography"
+import TextField from "@mui/material/TextField"
+import AddIcon from "@mui/icons-material/Add"
+import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 
 type Section = InferSelectModel<typeof profileSections>
 
@@ -27,7 +34,7 @@ export default function AddSection({ onAdd }: Props) {
   const [text, setText] = useState("")
   const [saving, setSaving] = useState(false)
 
-  function selectSuggestion(s: typeof SUGGESTIONS[number]) {
+  function selectSuggestion(s: (typeof SUGGESTIONS)[number]) {
     setActive({ title: s.label, placeholder: s.placeholder })
     setText("")
   }
@@ -66,88 +73,144 @@ export default function AddSection({ onAdd }: Props) {
     setText("")
   }
 
+  // Closed state — dashed add button
   if (!open) {
     return (
-      <button
+      <Button
+        fullWidth
+        variant="outlined"
+        startIcon={<AddIcon />}
         onClick={() => { setOpen(true); setActive(null); setCustomName(""); setText("") }}
-        className="w-full border border-dashed rounded-lg px-4 py-3 text-sm text-gray-400 hover:border-black hover:text-black transition-colors"
+        sx={{
+          borderStyle: "dashed",
+          borderColor: "#d1d5db",
+          color: "text.secondary",
+          py: 1.25,
+          fontSize: 13,
+          "&:hover": { borderColor: "#111", color: "#111", borderStyle: "dashed" },
+        }}
       >
-        + Add section
-      </button>
+        Add section
+      </Button>
     )
   }
 
+  // Active — text input for the chosen section
   if (active) {
     return (
-      <div className="border rounded-lg p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">{active.title}</p>
-          <button onClick={() => setActive(null)} className="text-xs text-gray-400 hover:text-black">← Back</button>
-        </div>
-        <textarea
+      <Paper variant="outlined" sx={{ borderRadius: 2, p: 2.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {active.title}
+          </Typography>
+          <Button
+            size="small"
+            startIcon={<ArrowBackIcon fontSize="small" />}
+            onClick={() => setActive(null)}
+            sx={{ color: "text.secondary", fontSize: 12 }}
+          >
+            Back
+          </Button>
+        </Box>
+        <TextField
+          multiline
           rows={3}
+          fullWidth
+          size="small"
+          placeholder={active.placeholder}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={active.placeholder}
           autoFocus
-          className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-black resize-none"
+          sx={{ mb: 2 }}
         />
-        <div className="flex gap-2">
-          <button
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          <Button
+            variant="contained"
+            size="small"
             onClick={save}
             disabled={saving || !text.trim()}
-            className="bg-black text-white rounded px-4 py-1.5 text-sm disabled:opacity-50"
+            sx={{ bgcolor: "#111", "&:hover": { bgcolor: "#333" } }}
           >
             {saving ? "Saving…" : "Save"}
-          </button>
-          <button onClick={cancel} className="text-sm text-gray-400 hover:text-black">Cancel</button>
-        </div>
-      </div>
+          </Button>
+          <Button
+            size="small"
+            onClick={cancel}
+            sx={{ color: "text.secondary" }}
+          >
+            Cancel
+          </Button>
+        </Box>
+      </Paper>
     )
   }
 
+  // Open — pick from suggestions or enter custom name
   return (
-    <div className="border rounded-lg p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">Add a section</p>
-        <button onClick={cancel} className="text-xs text-gray-400 hover:text-black">Cancel</button>
-      </div>
+    <Paper variant="outlined" sx={{ borderRadius: 2, p: 2.5 }}>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          Add a section
+        </Typography>
+        <Button size="small" onClick={cancel} sx={{ color: "text.secondary", fontSize: 12 }}>
+          Cancel
+        </Button>
+      </Box>
 
-      <div className="space-y-2">
-        <p className="text-xs text-gray-500">Suggestions</p>
-        <div className="space-y-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s.label}
-              onClick={() => selectSuggestion(s)}
-              className="w-full text-left border rounded-lg px-3 py-2 text-sm hover:border-black transition-colors"
-            >
-              <span className="font-medium">{s.label}</span>
-              <span className="text-gray-400 ml-2 text-xs">{s.placeholder}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-xs text-gray-500">Custom section</p>
-        <div className="flex gap-2">
-          <input
-            value={customName}
-            onChange={(e) => setCustomName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && selectCustom()}
-            placeholder="Section name"
-            className="flex-1 border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-black"
-          />
-          <button
-            disabled={!customName.trim()}
-            onClick={selectCustom}
-            className="border rounded px-3 py-1.5 text-sm hover:border-black disabled:opacity-50"
+      {/* Suggestions */}
+      <Typography variant="overline" sx={{ color: "text.disabled", fontWeight: 700, letterSpacing: "0.08em", fontSize: 10 }}>
+        Suggestions
+      </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 0.75, mb: 2.5 }}>
+        {SUGGESTIONS.map((s) => (
+          <Button
+            key={s.label}
+            variant="outlined"
+            fullWidth
+            onClick={() => selectSuggestion(s)}
+            sx={{
+              justifyContent: "flex-start",
+              borderColor: "#e5e7eb",
+              color: "text.primary",
+              textTransform: "none",
+              py: 1,
+              px: 1.5,
+              "&:hover": { borderColor: "#111" },
+            }}
           >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
+            <Box component="span" sx={{ fontWeight: 600, fontSize: 13, mr: 1 }}>
+              {s.label}
+            </Box>
+            <Box component="span" sx={{ color: "text.disabled", fontSize: 12 }}>
+              {s.placeholder}
+            </Box>
+          </Button>
+        ))}
+      </Box>
+
+      {/* Custom section */}
+      <Typography variant="overline" sx={{ color: "text.disabled", fontWeight: 700, letterSpacing: "0.08em", fontSize: 10 }}>
+        Custom section
+      </Typography>
+      <Box sx={{ display: "flex", gap: 1, mt: 0.75, alignItems: "center" }}>
+        <TextField
+          size="small"
+          fullWidth
+          placeholder="Section name"
+          value={customName}
+          onChange={(e) => setCustomName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && selectCustom()}
+        />
+        <Button
+          variant="outlined"
+          size="small"
+          disabled={!customName.trim()}
+          onClick={selectCustom}
+          sx={{ borderColor: "#e5e7eb", color: "text.primary", "&:hover": { borderColor: "#111" }, whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
+        >
+          Next
+        </Button>
+      </Box>
+    </Paper>
   )
 }
