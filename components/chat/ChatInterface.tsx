@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { useRef, useEffect, useState, useCallback } from "react"
-import Markdown from "./Markdown"
+import ChatBubble from "./ChatBubble"
 
 type ContactCollection = { enabled: boolean; requireName: boolean; requireEmail: boolean }
 
@@ -20,11 +20,13 @@ const INACTIVITY_MS = 5 * 60 * 1000
 const COLLECT_TOKEN = "[COLLECT_CONTACT]"
 const LS_SESSION = (slug: string) => `proxy-me:session:${slug}`
 
-const BG = "#0f1117"
-const SURFACE = "rgba(255,255,255,0.06)"
-const BORDER = "rgba(255,255,255,0.1)"
-const TEXT = "rgba(255,255,255,0.9)"
-const MUTED = "rgba(255,255,255,0.45)"
+const BG = "#0a0a0f"
+const SURFACE = "#14141f"
+const BORDER = "rgba(255,255,255,0.09)"
+const BORDER_STRONG = "rgba(255,255,255,0.16)"
+const TEXT = "#f3f1ee"
+const MUTED = "#9a9aae"
+const MUTED2 = "#6e6e82"
 
 type SavedSession = {
   sessionId: string
@@ -39,8 +41,9 @@ function Avatar({ name }: { name: string }) {
   return (
     <div style={{
       width: 72, height: 72, borderRadius: 20,
-      background: "linear-gradient(135deg, #3b3b3b 0%, #1a1a1a 100%)",
+      background: "linear-gradient(135deg, #8b6dff 0%, #5a3fd4 100%)",
       border: `1px solid ${BORDER}`,
+      boxShadow: "0 0 24px rgba(139,109,255,0.4)",
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: 28, fontWeight: 700, color: TEXT,
       marginBottom: 20,
@@ -52,7 +55,7 @@ function Avatar({ name }: { name: string }) {
 
 function inputStyle(focused: boolean): React.CSSProperties {
   return {
-    background: "rgba(255,255,255,0.07)",
+    background: "#14141f",
     border: `1px solid ${focused ? "rgba(255,255,255,0.3)" : BORDER}`,
     borderRadius: 8,
     padding: "9px 12px",
@@ -99,16 +102,18 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     if (raw) {
       try {
         const saved: SavedSession = JSON.parse(raw)
-        if (saved.sessionId && saved.messages?.length > 0) {
+        const sevenDays = 7 * 24 * 60 * 60 * 1000
+        const expired = Date.now() - (saved.savedAt ?? 0) > sevenDays
+        if (expired) {
+          localStorage.removeItem(LS_SESSION(slug))
+        } else if (saved.sessionId && saved.messages?.length > 0) {
           setResumeSession(saved)
-          // Pre-fill intro fields from saved contact info
           if (saved.name) setIntroName(saved.name)
           if (saved.email) setIntroEmail(saved.email)
           return
         }
       } catch { /* ignore */ }
     }
-    // No saved session — keep the UUID already initialised in useState
   }, [slug])
 
   function startFresh() {
@@ -220,7 +225,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     if (!introName.trim()) { setIntroNameError(true); return }
     setIntroNameError(false)
     const name = introName.trim()
-    // Only save to DB if email was provided
+    // Only save to DB if email was provided — send without sessionId since no chat session exists yet
     if (introEmail.trim()) {
       setContactEmail(introEmail)
       setContactName(name)
@@ -228,7 +233,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, name: name, email: introEmail.trim(), sessionId }),
+        body: JSON.stringify({ slug, name: name, email: introEmail.trim(), sessionId: null }),
       }).catch(() => {})
     }
     setIntrosDone(true)
@@ -254,7 +259,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     const preview = resumeSession.messages.filter((m) => m.role === "user")[0]?.content ?? ""
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: BG, color: TEXT, alignItems: "center", justifyContent: "center" }}>
-        <div style={{ maxWidth: 460, width: "100%", padding: "0 24px" }}>
+        <div style={{ maxWidth: 460, width: "100%", padding: "0 20px", boxSizing: "border-box" }}>
           <Avatar name={displayName} />
           <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700, letterSpacing: "-0.5px" }}>Welcome back{resumeSession.name ? `, ${resumeSession.name}` : ""}!</h2>
           <p style={{ margin: "0 0 24px", fontSize: 13, color: MUTED, lineHeight: 1.6 }}>
@@ -268,7 +273,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <button
               onClick={() => continueSession(resumeSession)}
-              style={{ background: "white", color: "#111", border: "none", borderRadius: 10, padding: "11px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+              style={{ background: "#8b6dff", color: "#0a0a0f", border: "none", borderRadius: 10, padding: "11px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
             >
               Continue conversation
             </button>
@@ -296,9 +301,9 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
 
           {/* Empty state + optional intro form */}
           {!hasMessages && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "70vh", textAlign: "center" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "70vh", textAlign: "center", padding: "0 4px" }}>
               <Avatar name={displayName} />
-              <h1 style={{ margin: 0, fontSize: 36, fontWeight: 700, letterSpacing: "-1px", color: TEXT, fontStyle: "italic" }}>
+              <h1 style={{ margin: 0, fontSize: "clamp(24px, 6vw, 36px)", fontWeight: 700, letterSpacing: "-1px", color: TEXT, fontStyle: "italic" }}>
                 Talk to {displayName}
               </h1>
               {headline && (
@@ -311,7 +316,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                     Ask broad questions, follow up naturally, or paste a job description to check fit.
                   </p>
                   {suggestedQuestions.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 28, maxWidth: 600 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 28, maxWidth: "100%" }}>
                       {suggestedQuestions.map((q) => (
                         <button
                           key={q}
@@ -320,13 +325,14 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                             background: "transparent",
                             border: `1px solid ${BORDER}`,
                             borderRadius: 100,
-                            padding: "8px 16px",
+                            padding: "8px 14px",
                             fontSize: 13,
                             color: MUTED,
                             cursor: "pointer",
                             transition: "all 0.15s",
+                            textAlign: "left",
                           }}
-                          onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.4)"; (e.target as HTMLButtonElement).style.color = TEXT }}
+                          onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.28)"; (e.target as HTMLButtonElement).style.color = TEXT }}
                           onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.borderColor = BORDER; (e.target as HTMLButtonElement).style.color = MUTED }}
                         >
                           {q}
@@ -345,31 +351,18 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
             const text = msg.parts.filter((p) => p.type === "text").map((p) => p.text).join("").replace(COLLECT_TOKEN, "").trim()
             if (!text) return null
             return (
-              <div key={msg.id} style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", marginBottom: 12 }}>
-                <div style={{
-                  maxWidth: "78%",
-                  borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  padding: "10px 16px",
-                  background: isUser ? "rgba(255,255,255,0.12)" : SURFACE,
-                  border: `1px solid ${isUser ? "rgba(255,255,255,0.15)" : BORDER}`,
-                  color: TEXT,
-                }}>
-                  {isUser
-                    ? <span style={{ fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</span>
-                    : <Markdown text={text} />
-                  }
-                </div>
+              <div key={msg.id} style={{ marginBottom: 12 }}>
+                <ChatBubble role={isUser ? "user" : "assistant"} text={text} renderMarkdown={!isUser} />
               </div>
             )
           })}
 
-          {/* Skeleton — only while waiting for first token, not during active streaming */}
           {status === "submitted" && (
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
-              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: "18px 18px 18px 4px", padding: "14px 18px", width: 180 }}>
-                <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.1)", marginBottom: 8, animation: "pulse 1.5s ease-in-out infinite" }} />
-                <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.08)", marginBottom: 8, width: "80%", animation: "pulse 1.5s ease-in-out infinite 0.1s" }} />
-                <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)", width: "60%", animation: "pulse 1.5s ease-in-out infinite 0.2s" }} />
+              <div style={{ background: "#1b1b2a", border: `1px solid ${BORDER}`, borderRadius: "18px 18px 18px 4px", padding: "12px 16px", display: "flex", alignItems: "center", gap: 5 }}>
+                {[0, 180, 360].map((delay) => (
+                  <span key={delay} style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#8b6dff", animation: "chatDotBounce 1.1s ease-in-out infinite", animationDelay: `${delay}ms` }} />
+                ))}
               </div>
             </div>
           )}
@@ -387,7 +380,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                   {!introName && (
                     <input value={contactName} onChange={(e) => setContactName(e.target.value)}
                       placeholder="Your name (optional)"
-                      style={{ background: "rgba(255,255,255,0.07)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", fontSize: 13, color: TEXT, outline: "none" }} />
+                      style={{ background: "#14141f", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", fontSize: 13, color: TEXT, outline: "none" }} />
                   )}
                   <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
                     placeholder="Your email *"
@@ -423,12 +416,12 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       </div>
 
       {/* Input bar / Intro form */}
-      <div style={{ position: "sticky", bottom: 0, padding: "16px 20px 24px", background: `linear-gradient(to top, ${BG} 80%, transparent)` }}>
+      <div style={{ position: "sticky", bottom: 0, padding: "12px 12px 20px", background: `linear-gradient(to top, ${BG} 80%, transparent)` }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           {showIntroForm ? (
             /* Intro form — replaces textarea until name is entered */
             <div style={{
-              background: "rgba(255,255,255,0.07)",
+              background: "#14141f",
               border: `1px solid ${BORDER}`,
               borderRadius: 16,
               padding: "16px 18px",
@@ -464,7 +457,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
               </div>
               <button
                 onClick={submitIntro}
-                style={{ marginTop: 12, background: "white", color: "#111", border: "none", borderRadius: 8, padding: "9px 24px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                style={{ marginTop: 12, background: "#8b6dff", color: "#0a0a0f", border: "none", borderRadius: 8, padding: "9px 24px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
                 Let's chat
               </button>
@@ -473,8 +466,8 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
             <>
               <div style={{
                 display: "flex", alignItems: "flex-end", gap: 12,
-                background: "rgba(255,255,255,0.07)",
-                border: `1px solid ${BORDER}`,
+                background: "#14141f",
+                border: `1px solid ${BORDER_STRONG}`,
                 borderRadius: 16,
                 padding: "12px 12px 12px 18px",
                 backdropFilter: "blur(12px)",
@@ -501,14 +494,15 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                   disabled={status === "streaming" || status === "submitted" || !inputValue.trim()}
                   style={{
                     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: inputValue.trim() && status !== "streaming" && status !== "submitted" ? "white" : "rgba(255,255,255,0.12)",
+                    background: inputValue.trim() && status !== "streaming" && status !== "submitted" ? "#8b6dff" : "rgba(255,255,255,0.12)",
+                    boxShadow: inputValue.trim() && status !== "streaming" && status !== "submitted" ? "0 0 16px rgba(139,109,255,0.4)" : "none",
                     border: "none", cursor: inputValue.trim() ? "pointer" : "default",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "background 0.15s",
                   }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 19V5M5 12l7-7 7 7" stroke={inputValue.trim() && status !== "streaming" && status !== "submitted" ? "#111" : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 19V5M5 12l7-7 7 7" stroke={inputValue.trim() && status !== "streaming" && status !== "submitted" ? "#0a0a0f" : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               </div>
@@ -521,6 +515,10 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       </div>
 
       <style>{`
+        @keyframes chatDotBounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+          30% { transform: translateY(-4px); opacity: 1; }
+        }
         @keyframes pulse {
           0%, 100% { opacity: 1 }
           50% { opacity: 0.4 }

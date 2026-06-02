@@ -146,14 +146,14 @@ export default function OnboardingFlow() {
             Your public link
           </Typography>
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Box sx={{ flex: 1, fontFamily: "monospace", fontSize: 13, bgcolor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 1, px: 1.5, py: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <Box sx={{ flex: 1, fontFamily: "monospace", fontSize: 13, bgcolor: "#1b1b2a", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 1, px: 1.5, py: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {publicUrl}
             </Box>
             <Button
               size="small"
               variant="outlined"
               onClick={() => navigator.clipboard.writeText(publicUrl)}
-              sx={{ borderColor: "#e5e7eb", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
+              sx={{ borderColor: "rgba(255,255,255,0.16)", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
             >
               Copy
             </Button>
@@ -174,7 +174,7 @@ export default function OnboardingFlow() {
             component="a"
             target="_blank"
             rel="noopener noreferrer"
-            sx={{ borderColor: "#e5e7eb", color: "text.primary", borderRadius: 2, py: 1.2 }}
+            sx={{ borderColor: "rgba(255,255,255,0.16)", color: "text.primary", borderRadius: 2, py: 1.2 }}
           >
             Preview my page
           </Button>

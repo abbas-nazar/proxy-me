@@ -83,11 +83,11 @@ export default function AddSection({ onAdd }: Props) {
         onClick={() => { setOpen(true); setActive(null); setCustomName(""); setText("") }}
         sx={{
           borderStyle: "dashed",
-          borderColor: "#d1d5db",
+          borderColor: "rgba(255,255,255,0.09)",
           color: "text.secondary",
           py: 1.25,
           fontSize: 13,
-          "&:hover": { borderColor: "#111", color: "#111", borderStyle: "dashed" },
+          "&:hover": { borderColor: "rgba(255,255,255,0.16)", color: "#f3f1ee", borderStyle: "dashed" },
         }}
       >
         Add section
@@ -129,7 +129,7 @@ export default function AddSection({ onAdd }: Props) {
             size="small"
             onClick={save}
             disabled={saving || !text.trim()}
-            sx={{ bgcolor: "#111", "&:hover": { bgcolor: "#333" } }}
+            sx={{ bgcolor: "#8b6dff", "&:hover": { bgcolor: "#7a5ce8" } }}
           >
             {saving ? "Saving…" : "Save"}
           </Button>
@@ -170,12 +170,12 @@ export default function AddSection({ onAdd }: Props) {
             onClick={() => selectSuggestion(s)}
             sx={{
               justifyContent: "flex-start",
-              borderColor: "#e5e7eb",
+              borderColor: "rgba(255,255,255,0.09)",
               color: "text.primary",
               textTransform: "none",
               py: 1,
               px: 1.5,
-              "&:hover": { borderColor: "#111" },
+              "&:hover": { borderColor: "rgba(255,255,255,0.16)" },
             }}
           >
             <Box component="span" sx={{ fontWeight: 600, fontSize: 13, mr: 1 }}>
@@ -206,7 +206,7 @@ export default function AddSection({ onAdd }: Props) {
           size="small"
           disabled={!customName.trim()}
           onClick={selectCustom}
-          sx={{ borderColor: "#e5e7eb", color: "text.primary", "&:hover": { borderColor: "#111" }, whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
+          sx={{ borderColor: "rgba(255,255,255,0.09)", color: "text.primary", "&:hover": { borderColor: "rgba(255,255,255,0.16)" }, whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
         >
           Next
         </Button>

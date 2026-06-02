@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import ChatBubble from "@/components/chat/ChatBubble"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Paper from "@mui/material/Paper"
@@ -20,8 +21,9 @@ type Session = {
   updatedAt: string | null
 }
 
-function ConversationRow({ session }: { session: Session }) {
-  const [open, setOpen] = useState(false)
+function ConversationRow({ session, defaultOpen }: { session: Session; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen ?? false)
+  const rowRef = useRef<HTMLDivElement>(null)
   const messages = session.messages ?? []
   const firstUserMsg = messages.find((m) => m.role === "user")
   const msgCount = messages.length
@@ -29,14 +31,20 @@ function ConversationRow({ session }: { session: Session }) {
     ? new Date(session.updatedAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
     : ""
 
+  useEffect(() => {
+    if (defaultOpen && rowRef.current) {
+      setTimeout(() => rowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100)
+    }
+  }, [defaultOpen])
+
   return (
-    <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
+    <Paper id={`session-${session.id}`} ref={rowRef} variant="outlined" sx={{ borderRadius: 2, overflow: "hidden", ...(defaultOpen ? { outline: "1px solid rgba(139,109,255,0.4)" } : {}) }}>
       <Box
         onClick={() => setOpen((v) => !v)}
         sx={{
           display: "flex", alignItems: "center", gap: 2, px: 2.5, py: 2,
           cursor: "pointer", userSelect: "none",
-          "&:hover": { bgcolor: "#fafafa" },
+          "&:hover": { bgcolor: "rgba(255,255,255,0.04)" },
           transition: "background 0.15s",
         }}
       >
@@ -66,22 +74,7 @@ function ConversationRow({ session }: { session: Session }) {
       <Collapse in={open}>
         <Box sx={{ borderTop: "1px solid", borderColor: "divider", px: 2.5, py: 2, display: "flex", flexDirection: "column", gap: 1 }}>
           {messages.map((m, i) => (
-            <Box key={i} sx={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-              <Box
-                sx={{
-                  fontSize: 13,
-                  px: 1.5, py: 1,
-                  borderRadius: 2,
-                  maxWidth: "80%",
-                  bgcolor: m.role === "user" ? "#111" : "#f3f4f6",
-                  color: m.role === "user" ? "white" : "#374151",
-                  lineHeight: 1.55,
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {m.content}
-              </Box>
-            </Box>
+            <ChatBubble key={i} role={m.role} text={m.content} />
           ))}
         </Box>
       </Collapse>
@@ -92,6 +85,11 @@ function ConversationRow({ session }: { session: Session }) {
 export default function ConversationsPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
+  const targetId = typeof window !== "undefined"
+    ? window.location.hash.startsWith("#session-")
+      ? window.location.hash.replace("#session-", "")
+      : null
+    : null
 
   useEffect(() => {
     fetch("/api/conversations")
@@ -125,7 +123,7 @@ export default function ConversationsPage() {
       {!loading && sessions.length > 0 && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {sessions.map((session) => (
-            <ConversationRow key={session.id} session={session} />
+            <ConversationRow key={session.id} session={session} defaultOpen={session.id === targetId} />
           ))}
         </Box>
       )}

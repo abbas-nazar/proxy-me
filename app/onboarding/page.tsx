@@ -14,7 +14,7 @@ export default async function OnboardingPage() {
   if (existing) redirect("/dashboard")
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", p: 3, bgcolor: "#fff" }}>
+    <Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", p: 3, bgcolor: "#0a0a0f" }}>
       <Box sx={{ width: "100%", maxWidth: 440 }}>
         <OnboardingFlow />
       </Box>

@@ -51,7 +51,7 @@ export default async function LeadsPage() {
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: "hidden" }}>
           <Table size="small">
             <TableHead>
-              <TableRow sx={{ bgcolor: "#fafafa" }}>
+              <TableRow sx={{ bgcolor: "#1b1b2a" }}>
                 {["Name", "Email", "Date", "Conversation"].map((col) => (
                   <TableCell
                     key={col}

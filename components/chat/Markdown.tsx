@@ -7,22 +7,30 @@ const MUTED = "rgba(255,255,255,0.55)"
 
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = []
-  // bold **text** or __text__, italic *text* or _text_, inline code `code`
-  const re = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g
+  // links [text](url), bold, italic, inline code
+  const re = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(\*\*|__)(.*?)\3|(\*|_)(.*?)\5|(`)(.*?)\7/g
   let last = 0
   let match: RegExpExecArray | null
   let key = 0
 
   while ((match = re.exec(text)) !== null) {
     if (match.index > last) parts.push(text.slice(last, match.index))
-    if (match[1]) {
-      parts.push(<strong key={key++} style={{ fontWeight: 600, color: TEXT }}>{match[2]}</strong>)
+    if (match[1] !== undefined) {
+      // link
+      parts.push(
+        <a key={key++} href={match[2]} target="_blank" rel="noopener noreferrer"
+          style={{ color: "rgba(255,255,255,0.75)", textDecoration: "underline", textUnderlineOffset: 2 }}>
+          {match[1]}
+        </a>
+      )
     } else if (match[3]) {
-      parts.push(<em key={key++}>{match[4]}</em>)
+      parts.push(<strong key={key++} style={{ fontWeight: 600, color: TEXT }}>{match[4]}</strong>)
     } else if (match[5]) {
+      parts.push(<em key={key++}>{match[6]}</em>)
+    } else if (match[7]) {
       parts.push(
         <code key={key++} style={{ fontFamily: "monospace", fontSize: "0.9em", background: "rgba(255,255,255,0.1)", borderRadius: 4, padding: "1px 5px" }}>
-          {match[6]}
+          {match[8]}
         </code>
       )
     }

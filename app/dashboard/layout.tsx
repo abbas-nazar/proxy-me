@@ -88,16 +88,16 @@ function NavItemRow({
             minHeight: 38,
             justifyContent: collapsed ? "center" : "flex-start",
             px: collapsed ? 1 : 1.5,
-            "&.Mui-selected": { bgcolor: "#f3f4f6", color: "#111" },
-            "&.Mui-selected:hover": { bgcolor: "#e5e7eb" },
-            "&:hover": { bgcolor: "#f9fafb" },
+            "&.Mui-selected": { bgcolor: "rgba(139,109,255,0.15)", color: "#f3f1ee" },
+            "&.Mui-selected:hover": { bgcolor: "rgba(139,109,255,0.22)" },
+            "&:hover": { bgcolor: "rgba(255,255,255,0.04)" },
           }}
         >
           <ListItemIcon
             sx={{
               minWidth: 0,
               mr: collapsed ? 0 : 1.5,
-              color: active ? "#111" : "text.secondary",
+              color: active ? "#f3f1ee" : "text.secondary",
             }}
           >
             {icon}
@@ -145,7 +145,7 @@ function SidebarGroups({
             </Typography>
           )}
           {collapsed && group.groupLabel && gi > 0 && (
-            <Box sx={{ my: 1, mx: 1, borderTop: "1px solid #f0f0f0" }} />
+            <Box sx={{ my: 1, mx: 1, borderTop: "1px solid rgba(255,255,255,0.09)" }} />
           )}
           <List dense disablePadding>
             {group.items.map(({ label, href, icon }) => (
@@ -174,7 +174,7 @@ function SidebarBottom({
   onItemClick?: () => void
 }) {
   return (
-    <Box sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1, borderTop: "1px solid #f0f0f0" }}>
+    <Box sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1, borderTop: "1px solid rgba(255,255,255,0.09)" }}>
       <Tooltip title={collapsed ? "Preview page" : ""} placement="right">
         <ListItemButton
           component="a"
@@ -186,7 +186,7 @@ function SidebarBottom({
             minHeight: 38,
             justifyContent: collapsed ? "center" : "flex-start",
             px: collapsed ? 1 : 1.5,
-            "&:hover": { bgcolor: "#f9fafb" },
+            "&:hover": { bgcolor: "rgba(255,255,255,0.04)" },
           }}
         >
           <ListItemIcon sx={{ minWidth: 0, mr: collapsed ? 0 : 1.5, color: "text.secondary" }}>
@@ -216,10 +216,10 @@ function MobileSidebarContent({
 }) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Box sx={{ display: "flex", alignItems: "center", px: 2, py: 1.5, justifyContent: "space-between", borderBottom: "1px solid #f0f0f0" }}>
-        <Link href="/dashboard" style={{ textDecoration: "none", color: "inherit" }} onClick={onClose}>
-          <Box component="span" sx={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px" }}>
-            proxy-me
+      <Box sx={{ display: "flex", alignItems: "center", px: 2, py: 1.5, justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
+        <Link href="/dashboard" style={{ textDecoration: "none", color: "#f3f1ee" }} onClick={onClose}>
+          <Box component="span" sx={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px", fontFamily: "var(--font-space-grotesk)" }}>
+            Proxy<span style={{ color: "#8b6dff" }}>-</span>Me
           </Box>
         </Link>
         <IconButton size="small" onClick={onClose}>
@@ -239,7 +239,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const width = collapsed ? DRAWER_COLLAPSED : DRAWER_WIDTH
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#fafafa" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#0a0a0f" }}>
 
       {/* Mobile top bar */}
       <Box
@@ -250,16 +250,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           left: 0,
           right: 0,
           zIndex: 1200,
-          bgcolor: "white",
-          borderBottom: "1px solid #e5e7eb",
+          bgcolor: "#0e0e16",
+          borderBottom: "1px solid rgba(255,255,255,0.09)",
           px: 2,
           py: 1.5,
           alignItems: "center",
           justifyContent: "space-between",
         }}
       >
-        <Link href="/dashboard" style={{ textDecoration: "none", color: "inherit", fontWeight: 700, fontSize: 15 }}>
-          proxy-me
+        <Link href="/dashboard" style={{ textDecoration: "none", color: "#f3f1ee", fontWeight: 700, fontSize: 15, fontFamily: "var(--font-space-grotesk)" }}>
+          Proxy<span style={{ color: "#8b6dff" }}>-</span>Me
         </Link>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <UserButton />
@@ -276,7 +276,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClose={() => setMobileOpen(false)}
         sx={{
           display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box" },
+          "& .MuiDrawer-paper": { width: DRAWER_WIDTH, boxSizing: "border-box", bgcolor: "#0e0e16" },
         }}
       >
         <MobileSidebarContent pathname={pathname} onClose={() => setMobileOpen(false)} />
@@ -296,8 +296,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             overflowX: "hidden",
             display: "flex",
             flexDirection: "column",
-            bgcolor: "white",
-            borderRight: "1px solid #f0f0f0",
+            bgcolor: "#0e0e16",
+            borderRight: "1px solid rgba(255,255,255,0.09)",
           },
         }}
       >
@@ -309,14 +309,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             px: collapsed ? 1 : 2,
             py: 1.5,
             justifyContent: collapsed ? "center" : "space-between",
-            borderBottom: "1px solid #f0f0f0",
+            borderBottom: "1px solid rgba(255,255,255,0.09)",
             minHeight: 52,
           }}
         >
           {!collapsed && (
-            <Link href="/dashboard" style={{ textDecoration: "none", color: "inherit" }}>
-              <Box component="span" sx={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px" }}>
-                proxy-me
+            <Link href="/dashboard" style={{ textDecoration: "none", color: "#f3f1ee" }}>
+              <Box component="span" sx={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px", fontFamily: "var(--font-space-grotesk)" }}>
+                Proxy<span style={{ color: "#8b6dff" }}>-</span>Me
               </Box>
             </Link>
           )}
@@ -335,7 +335,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           flex: 1,
           minWidth: 0,
           pt: { xs: 8, md: 0 },
-          bgcolor: "#fafafa",
+          bgcolor: "#0a0a0f",
         }}
       >
         {children}

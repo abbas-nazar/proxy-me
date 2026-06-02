@@ -1,8 +1,8 @@
 import { streamText, convertToModelMessages } from "ai"
 import { anthropic } from "@/lib/claude"
 import { db } from "@/lib/db"
-import { users, profileSections, chatSessions } from "@/db/schema"
-import { eq, sql } from "drizzle-orm"
+import { users, profileSections, chatSessions, visitorContacts } from "@/db/schema"
+import { eq, sql, and, isNull } from "drizzle-orm"
 import { buildSystemPrompt } from "@/lib/systemPrompt"
 import { NextResponse } from "next/server"
 
@@ -35,12 +35,24 @@ export async function POST(req: Request) {
     content: m.parts?.filter((p: { type: string }) => p.type === "text").map((p: { text: string }) => p.text).join("") ?? "",
   }))
 
+  const isFirstMessage = plainMessages.length === 1
+
   await db.insert(chatSessions)
     .values({ id: sessionId, userId: user.id, messages: plainMessages })
     .onConflictDoUpdate({
       target: chatSessions.id,
       set: { messages: plainMessages, updatedAt: sql`now()` },
     })
+
+  // On first message, link any unlinked contact for this user+slug to this session
+  if (isFirstMessage) {
+    await db.update(visitorContacts)
+      .set({ sessionId })
+      .where(and(
+        eq(visitorContacts.userId, user.id),
+        isNull(visitorContacts.sessionId),
+      ))
+  }
 
   const result = streamText({
     model: anthropic("claude-sonnet-4-6"),

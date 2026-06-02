@@ -235,22 +235,22 @@ export default function SectionCard({ section, onDelete, onUpdate, initialEditin
         {editing ? (
           <>
             <Button size="small" variant="contained" onClick={handleSave} disabled={saving}
-              sx={{ bgcolor: "#111", "&:hover": { bgcolor: "#333" }, fontSize: 12 }}>
+              sx={{ bgcolor: "#8b6dff", "&:hover": { bgcolor: "#7a5ce8" }, fontSize: 12 }}>
               {saving ? "Saving…" : "Save"}
             </Button>
             <Button size="small" variant="outlined" onClick={handleCancel}
-              sx={{ fontSize: 12, borderColor: "#e5e7eb", color: "text.primary" }}>
+              sx={{ fontSize: 12, borderColor: "rgba(255,255,255,0.09)", color: "text.primary" }}>
               Cancel
             </Button>
           </>
         ) : (
           <>
             <Button size="small" variant="outlined" onClick={() => setEditing(true)}
-              sx={{ fontSize: 12, borderColor: "#e5e7eb", color: "text.primary", "&:hover": { borderColor: "#111" } }}>
+              sx={{ fontSize: 12, borderColor: "rgba(255,255,255,0.09)", color: "text.primary", "&:hover": { borderColor: "rgba(255,255,255,0.16)" } }}>
               Edit
             </Button>
             <Button size="small" variant="outlined" onClick={handleDelete} disabled={deleting}
-              sx={{ fontSize: 12, borderColor: "#e5e7eb", color: "error.main", "&:hover": { borderColor: "error.main" } }}>
+              sx={{ fontSize: 12, borderColor: "rgba(255,255,255,0.09)", color: "error.main", "&:hover": { borderColor: "error.main" } }}>
               {deleting ? "…" : "Delete"}
             </Button>
           </>

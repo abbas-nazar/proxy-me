@@ -17,6 +17,14 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 
 type ContactCollection = { enabled: boolean; requireName: boolean; requireEmail: boolean }
 
+const TONE_PRESETS = [
+  { label: "Professional", value: "Speak professionally and confidently. Keep answers structured and precise. Avoid slang or overly casual language." },
+  { label: "Casual & warm", value: "Be conversational and friendly, like chatting with someone over coffee. Use natural language, contractions, and a bit of warmth." },
+  { label: "Direct & concise", value: "Be direct and to the point. Skip pleasantries. Use bullet points when listing things. Keep answers short." },
+  { label: "Technical", value: "Lean into technical depth. Use correct terminology, reference specific tools and architectures, and don't over-simplify." },
+  { label: "Storyteller", value: "Answer with narrative and context. Share the 'why' behind decisions, not just the 'what'. Make it engaging and human." },
+]
+
 type Props = {
   user: {
     id: string
@@ -32,7 +40,7 @@ type Props = {
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <Box sx={{ border: "1px solid #e5e7eb", borderRadius: 2, p: 3 }}>
+    <Box sx={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: 2, p: 3 }}>
       <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>{title}</Typography>
       {subtitle && <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 2 }}>{subtitle}</Typography>}
       {children}
@@ -186,7 +194,7 @@ export default function SettingsForm({ user }: Props) {
             checked={isPublic}
             onChange={togglePublic}
             disabled={togglingPublic}
-            sx={{ "& .MuiSwitch-thumb": { bgcolor: "white" }, "& .Mui-checked .MuiSwitch-track": { bgcolor: "black" } }}
+            sx={{  }}
           />
         </Box>
 
@@ -194,7 +202,7 @@ export default function SettingsForm({ user }: Props) {
 
         <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>Public URL</Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <Box sx={{ flex: 1, bgcolor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 1, px: 1.5, py: 1, fontFamily: "monospace", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <Box sx={{ flex: 1, bgcolor: "#1b1b2a", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 1, px: 1.5, py: 1, fontFamily: "var(--font-jetbrains-mono, monospace)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#9a9aae" }}>
             {publicUrl}
           </Box>
           <Button
@@ -202,7 +210,7 @@ export default function SettingsForm({ user }: Props) {
             variant="outlined"
             onClick={copyLink}
             startIcon={copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
-            sx={{ borderColor: "#e5e7eb", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
+            sx={{ borderColor: "rgba(255,255,255,0.16)", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
           >
             {copied ? "Copied!" : "Copy"}
           </Button>
@@ -233,20 +241,36 @@ export default function SettingsForm({ user }: Props) {
           size="small"
           onClick={saveProfile}
           disabled={savingProfile || !displayName.trim()}
-          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" } }}
-        >
+                  >
           {profileSaved ? "Saved!" : savingProfile ? "Saving…" : "Save"}
         </Button>
       </Section>
 
-      {/* Personality */}
-      <Section title="Personality" subtitle="Customize how your twin speaks. Leave blank to use the default career-focused persona.">
+      {/* Voice & Tone */}
+      <Section title="Voice & Tone" subtitle="Describe how your twin should sound. Pick a preset to get started, then edit it to match your style.">
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+          {TONE_PRESETS.map((preset) => (
+            <Chip
+              key={preset.label}
+              label={preset.label}
+              size="small"
+              onClick={() => setPersonality(preset.value)}
+              variant={personality === preset.value ? "filled" : "outlined"}
+              sx={{
+                cursor: "pointer",
+                ...(personality === preset.value
+                  ? { bgcolor: "rgba(139,109,255,0.15)", borderColor: "rgba(139,109,255,0.4)", color: "#8b6dff" }
+                  : { bgcolor: "transparent" }),
+              }}
+            />
+          ))}
+        </Box>
         <TextField
           multiline
-          rows={5}
+          rows={4}
           fullWidth
           size="small"
-          placeholder="Describe your personality, tone, or any extra instructions for how your twin should respond…"
+          placeholder="e.g. I'm direct and technical. Skip pleasantries, use bullet points, and be concise."
           value={personality}
           onChange={(e) => setPersonality(e.target.value)}
           sx={{ mb: 2 }}
@@ -256,7 +280,6 @@ export default function SettingsForm({ user }: Props) {
           size="small"
           onClick={savePersonality}
           disabled={savingPersonality}
-          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" } }}
         >
           {personalitySaved ? "Saved!" : savingPersonality ? "Saving…" : "Save"}
         </Button>
@@ -292,7 +315,7 @@ export default function SettingsForm({ user }: Props) {
             size="small"
             onClick={addQuestion}
             disabled={!newQuestion.trim()}
-            sx={{ borderColor: "#e5e7eb", color: "text.primary", minWidth: 40, height: 40, flexShrink: 0 }}
+            sx={{ borderColor: "rgba(255,255,255,0.16)", color: "text.primary", minWidth: 40, height: 40, flexShrink: 0 }}
           >
             <AddIcon fontSize="small" />
           </Button>
@@ -302,8 +325,7 @@ export default function SettingsForm({ user }: Props) {
           size="small"
           onClick={saveQuestions}
           disabled={savingQuestions}
-          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" } }}
-        >
+                  >
           {questionsSaved ? "Saved!" : savingQuestions ? "Saving…" : "Save Questions"}
         </Button>
       </Section>
@@ -326,8 +348,7 @@ export default function SettingsForm({ user }: Props) {
             size="small"
             onClick={saveContact}
             disabled={savingContact}
-            sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" } }}
-          >
+                      >
             {contactSaved ? "Saved!" : savingContact ? "Saving…" : "Save"}
           </Button>
         </Box>
@@ -337,7 +358,7 @@ export default function SettingsForm({ user }: Props) {
       <Section title="Danger Zone" subtitle="Permanently delete your account and all data. This cannot be undone.">
         <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
           Type your handle{" "}
-          <Box component="code" sx={{ bgcolor: "#f3f4f6", px: 0.75, py: 0.25, borderRadius: 1, fontSize: 12 }}>
+          <Box component="code" sx={{ bgcolor: "#1b1b2a", border: "1px solid rgba(255,255,255,0.09)", px: 0.75, py: 0.25, borderRadius: 1, fontSize: 12, fontFamily: "var(--font-jetbrains-mono, monospace)" }}>
             {user.slug}
           </Box>{" "}
           to confirm.

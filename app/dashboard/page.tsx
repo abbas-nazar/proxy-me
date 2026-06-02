@@ -66,26 +66,26 @@ export default async function DashboardPage() {
         {/* Stat cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
           {stats.map(({ label, value, href }) => (
-            <Link key={href} href={href} style={{ textDecoration: "none", border: "1px solid #e5e7eb", borderRadius: 12, padding: "18px 20px", display: "block", color: "inherit", transition: "border-color 0.15s" }}
+            <Link key={href} href={href} style={{ textDecoration: "none", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "18px 20px", display: "block", color: "inherit", transition: "border-color 0.15s", backgroundColor: "#14141f" }}
               className="stat-card">
               <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-1px", lineHeight: 1 }}>{value}</div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>{label}</div>
+              <div style={{ fontSize: 12, color: "#9a9aae", marginTop: 6 }}>{label}</div>
             </Link>
           ))}
         </div>
 
         {/* Quick actions */}
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#9ca3af", marginBottom: 12, textTransform: "uppercase" }}>Quick actions</div>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", marginBottom: 12, textTransform: "uppercase" }}>Quick actions</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
           {quickActions.map(({ label, description, href, external }) => (
             <Link
               key={href}
               href={href}
               target={external ? "_blank" : undefined}
-              style={{ textDecoration: "none", border: "1px solid #e5e7eb", borderRadius: 12, padding: "18px 20px", display: "block", color: "inherit" }}
+              style={{ textDecoration: "none", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "18px 20px", display: "block", color: "inherit", backgroundColor: "#14141f" }}
             >
               <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: external ? "monospace" : "inherit" }}>
+              <div style={{ fontSize: 12, color: "#9a9aae", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: external ? "monospace" : "inherit" }}>
                 {description}
               </div>
             </Link>
