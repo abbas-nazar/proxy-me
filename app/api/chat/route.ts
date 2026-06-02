@@ -50,7 +50,6 @@ export async function POST(req: Request) {
       anthropic: { cacheControl: { type: "ephemeral" } },
     },
     onFinish: async ({ text }) => {
-      // Save again with the assistant reply appended
       const withReply = [...plainMessages, { role: "assistant", content: text }]
       await db.update(chatSessions)
         .set({ messages: withReply, updatedAt: sql`now()` })

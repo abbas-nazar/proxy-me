@@ -24,14 +24,6 @@ export const profileSections = pgTable("profile_sections", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })
 
-export const visitorContacts = pgTable("visitor_contacts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
-  name: text("name"),
-  email: text("email"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-})
-
 export const chatSessions = pgTable("chat_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
@@ -39,4 +31,13 @@ export const chatSessions = pgTable("chat_sessions", {
   messages: jsonb("messages").default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+})
+
+export const visitorContacts = pgTable("visitor_contacts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id").references(() => chatSessions.id, { onDelete: "set null" }),
+  name: text("name"),
+  email: text("email"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })

@@ -4,7 +4,7 @@ import { users, visitorContacts } from "@/db/schema"
 import { eq } from "drizzle-orm"
 
 export async function POST(req: Request) {
-  const { slug, name, email } = await req.json()
+  const { slug, name, email, sessionId } = await req.json()
 
   if (!slug) return NextResponse.json({ error: "Missing slug" }, { status: 400 })
   if (!email?.trim()) return NextResponse.json({ error: "Email is required" }, { status: 400 })
@@ -12,7 +12,12 @@ export async function POST(req: Request) {
   const [user] = await db.select().from(users).where(eq(users.slug, slug))
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  await db.insert(visitorContacts).values({ userId: user.id, name: name || null, email: email.trim() })
+  await db.insert(visitorContacts).values({
+    userId: user.id,
+    sessionId: sessionId || null,
+    name: name || null,
+    email: email.trim(),
+  })
 
   return NextResponse.json({ ok: true })
 }

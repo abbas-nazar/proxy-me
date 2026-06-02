@@ -20,6 +20,8 @@ export default async function SettingsPage() {
         user={{
           id: user.id,
           slug: user.slug,
+          displayName: user.displayName ?? "",
+          headline: user.headline ?? "",
           isPublic: user.isPublic ?? true,
           personality: user.personality ?? "",
           suggestedQuestions: (user.suggestedQuestions as string[]) ?? [],

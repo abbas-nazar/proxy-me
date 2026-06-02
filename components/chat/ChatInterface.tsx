@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { useRef, useEffect, useState, useCallback } from "react"
+import Markdown from "./Markdown"
 
 type ContactCollection = { enabled: boolean; requireName: boolean; requireEmail: boolean }
 
@@ -130,6 +131,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     transport: new DefaultChatTransport({ api: "/api/chat", body: { slug, sessionId } }),
   })
 
+
   // Restore messages after "Continue conversation" is clicked
   useEffect(() => {
     const saved = pendingRestoreRef.current
@@ -200,6 +202,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
           slug,
           name: (contactName.trim() || introName.trim()) || null,
           email: emailToUse,
+          sessionId,
         }),
       })
       if (!res.ok) throw new Error()
@@ -216,15 +219,17 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   function submitIntro() {
     if (!introName.trim()) { setIntroNameError(true); return }
     setIntroNameError(false)
+    const name = introName.trim()
     // Only save to DB if email was provided
     if (introEmail.trim()) {
       setContactEmail(introEmail)
-      setContactName(introName)
+      setContactName(name)
+      setContactCaptured(true)
       fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, name: introName.trim(), email: introEmail.trim() }),
-      }).then((r) => { if (r.ok) setContactCaptured(true) }).catch(() => {})
+        body: JSON.stringify({ slug, name: name, email: introEmail.trim(), sessionId }),
+      }).catch(() => {})
     }
     setIntrosDone(true)
   }
@@ -345,14 +350,14 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                   maxWidth: "78%",
                   borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                   padding: "10px 16px",
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  whiteSpace: "pre-wrap",
                   background: isUser ? "rgba(255,255,255,0.12)" : SURFACE,
                   border: `1px solid ${isUser ? "rgba(255,255,255,0.15)" : BORDER}`,
                   color: TEXT,
                 }}>
-                  {text}
+                  {isUser
+                    ? <span style={{ fontSize: 14, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</span>
+                    : <Markdown text={text} />
+                  }
                 </div>
               </div>
             )
@@ -484,14 +489,14 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                     e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"
                   }}
                   onKeyDown={handleKeyDown}
-                  placeholder={`Ask ${displayName} anything…`}
+                  placeholder={`Ask anything, or paste a job description…`}
                   style={{
                     flex: 1, background: "transparent", border: "none", outline: "none",
                     color: TEXT, fontSize: 14, lineHeight: 1.5, resize: "none",
                     fontFamily: "inherit", minHeight: 22, maxHeight: 140,
                   }}
                 />
-                <button
+<button
                   onClick={() => submit()}
                   disabled={status === "streaming" || status === "submitted" || !inputValue.trim()}
                   style={{

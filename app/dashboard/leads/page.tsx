@@ -1,8 +1,9 @@
 import { getOrRedirectUser } from "@/app/actions/onboarding"
 import { db } from "@/lib/db"
-import { visitorContacts, chatSessions } from "@/db/schema"
+import { visitorContacts } from "@/db/schema"
 import { eq, desc } from "drizzle-orm"
 import Box from "@mui/material/Box"
+
 import Typography from "@mui/material/Typography"
 import Paper from "@mui/material/Paper"
 import Table from "@mui/material/Table"
@@ -14,10 +15,11 @@ import TableCell from "@mui/material/TableCell"
 export default async function LeadsPage() {
   const user = await getOrRedirectUser()
 
-  const [contacts, sessions] = await Promise.all([
-    db.select().from(visitorContacts).where(eq(visitorContacts.userId, user.id)).orderBy(desc(visitorContacts.createdAt)),
-    db.select().from(chatSessions).where(eq(chatSessions.userId, user.id)).orderBy(desc(chatSessions.updatedAt)),
-  ])
+  const contacts = await db
+    .select()
+    .from(visitorContacts)
+    .where(eq(visitorContacts.userId, user.id))
+    .orderBy(desc(visitorContacts.createdAt))
 
   return (
     <Box sx={{ px: { xs: 3, md: 5 }, py: 4, maxWidth: 900, mx: "auto" }}>
@@ -68,44 +70,37 @@ export default async function LeadsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {contacts.map((c) => {
-                const session = sessions.find((s) => {
-                  const created = s.createdAt ? new Date(s.createdAt).getTime() : 0
-                  const contactTime = c.createdAt ? new Date(c.createdAt).getTime() : 0
-                  return Math.abs(created - contactTime) < 60 * 60 * 1000
-                })
-                return (
-                  <TableRow key={c.id} hover>
-                    <TableCell sx={{ fontWeight: 500, fontSize: 13 }}>
-                      {c.name ?? <Typography component="span" sx={{ color: "text.disabled" }}>—</Typography>}
-                    </TableCell>
-                    <TableCell sx={{ color: "text.secondary", fontSize: 13 }}>
-                      {c.email ?? <Typography component="span" sx={{ color: "text.disabled" }}>—</Typography>}
-                    </TableCell>
-                    <TableCell sx={{ color: "text.disabled", fontSize: 12 }}>
-                      {c.createdAt
-                        ? new Date(c.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
-                        : ""}
-                    </TableCell>
-                    <TableCell>
-                      {session ? (
-                        <Typography
-                          component="a"
-                          href={`/dashboard/conversations#session-${session.id}`}
-                          variant="caption"
-                          sx={{ color: "text.primary", textDecoration: "underline", textUnderlineOffset: 2, "&:hover": { opacity: 0.6 } }}
-                        >
-                          View chat
-                        </Typography>
-                      ) : (
-                        <Typography component="span" variant="caption" sx={{ color: "text.disabled" }}>
-                          —
-                        </Typography>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+              {contacts.map((c) => (
+                <TableRow key={c.id} hover>
+                  <TableCell sx={{ fontWeight: 500, fontSize: 13 }}>
+                    {c.name ?? <Typography component="span" sx={{ color: "text.disabled" }}>—</Typography>}
+                  </TableCell>
+                  <TableCell sx={{ color: "text.secondary", fontSize: 13 }}>
+                    {c.email ?? <Typography component="span" sx={{ color: "text.disabled" }}>—</Typography>}
+                  </TableCell>
+                  <TableCell sx={{ color: "text.disabled", fontSize: 12 }}>
+                    {c.createdAt
+                      ? new Date(c.createdAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
+                      : ""}
+                  </TableCell>
+                  <TableCell>
+                    {c.sessionId ? (
+                      <Typography
+                        component="a"
+                        href={`/dashboard/conversations#session-${c.sessionId}`}
+                        variant="caption"
+                        sx={{ color: "text.primary", textDecoration: "underline", textUnderlineOffset: 2, "&:hover": { opacity: 0.6 } }}
+                      >
+                        View chat
+                      </Typography>
+                    ) : (
+                      <Typography component="span" variant="caption" sx={{ color: "text.disabled" }}>
+                        —
+                      </Typography>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </Paper>

@@ -21,6 +21,8 @@ type Props = {
   user: {
     id: string
     slug: string
+    displayName: string
+    headline: string
     isPublic: boolean
     personality: string
     suggestedQuestions: string[]
@@ -45,6 +47,11 @@ export default function SettingsForm({ user }: Props) {
   const [isPublic, setIsPublic] = useState(user.isPublic)
   const [copied, setCopied] = useState(false)
   const [togglingPublic, setTogglingPublic] = useState(false)
+
+  const [displayName, setDisplayName] = useState(user.displayName)
+  const [headline, setHeadline] = useState(user.headline)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileSaved, setProfileSaved] = useState(false)
 
   const [personality, setPersonality] = useState(user.personality)
   const [savingPersonality, setSavingPersonality] = useState(false)
@@ -78,6 +85,17 @@ export default function SettingsForm({ user }: Props) {
       setIsPublic((v) => !v)
     } finally {
       setTogglingPublic(false)
+    }
+  }
+
+  async function saveProfile() {
+    setSavingProfile(true)
+    try {
+      await patch({ displayName, headline })
+      setProfileSaved(true)
+      setTimeout(() => setProfileSaved(false), 2000)
+    } finally {
+      setSavingProfile(false)
     }
   }
 
@@ -189,6 +207,36 @@ export default function SettingsForm({ user }: Props) {
             {copied ? "Copied!" : "Copy"}
           </Button>
         </Box>
+      </Section>
+
+      {/* Profile */}
+      <Section title="Profile" subtitle="Your name and headline shown on your public page.">
+        <TextField
+          fullWidth
+          size="small"
+          label="Display name"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <TextField
+          fullWidth
+          size="small"
+          label="Headline"
+          placeholder="e.g. Senior Engineer at Acme"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+        <Button
+          variant="contained"
+          size="small"
+          onClick={saveProfile}
+          disabled={savingProfile || !displayName.trim()}
+          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" } }}
+        >
+          {profileSaved ? "Saved!" : savingProfile ? "Saving…" : "Save"}
+        </Button>
       </Section>
 
       {/* Personality */}

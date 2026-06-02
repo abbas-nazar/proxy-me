@@ -12,10 +12,11 @@ export async function PATCH(req: Request) {
 
   const patch: Partial<typeof users.$inferInsert> = {}
   if ("isPublic" in body) patch.isPublic = body.isPublic
+  if ("displayName" in body) patch.displayName = body.displayName
+  if ("headline" in body) patch.headline = body.headline
   if ("personality" in body) patch.personality = body.personality
   if ("suggestedQuestions" in body) patch.suggestedQuestions = body.suggestedQuestions
   if ("contactCollection" in body) patch.contactCollection = body.contactCollection
-  if ("headline" in body) patch.headline = body.headline
 
   if (Object.keys(patch).length === 0)
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
