@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import TextField from "@mui/material/TextField"
@@ -10,9 +11,10 @@ import CircularProgress from "@mui/material/CircularProgress"
 import InputAdornment from "@mui/material/InputAdornment"
 import type { ParsedProfile } from "@/lib/parser"
 
-type Step = "slug" | "import" | "parsing" | "done"
+type Step = "slug" | "import" | "parsing"
 
 export default function OnboardingFlow() {
+  const router = useRouter()
   const [step, setStep] = useState<Step>("slug")
   const [slug, setSlug] = useState("")
   const [slugError, setSlugError] = useState("")
@@ -56,7 +58,7 @@ export default function OnboardingFlow() {
       if (!res.ok) throw new Error()
       const parsed: ParsedProfile = await res.json()
       await saveAll(parsed)
-      setStep("done")
+      router.push("/dashboard/sections")
     } catch {
       setStep("import")
       setError("Failed to parse your CV. Please try again.")
@@ -114,7 +116,7 @@ export default function OnboardingFlow() {
           type="submit"
           variant="contained"
           disabled={slugPending}
-          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
+          sx={{ bgcolor: "#8b6dff", color: "#0a0a0f", "&:hover": { bgcolor: "#7c5ef0" }, borderRadius: 2, py: 1.2 }}
         >
           {slugPending ? "Setting up…" : "Continue"}
         </Button>
@@ -125,60 +127,8 @@ export default function OnboardingFlow() {
   if (step === "parsing") {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
-        <CircularProgress size={28} sx={{ color: "black" }} />
+        <CircularProgress size={28} sx={{ color: "#8b6dff" }} />
         <Typography variant="body2" sx={{ color: "text.secondary" }}>Extracting your profile…</Typography>
-      </Box>
-    )
-  }
-
-  if (step === "done") {
-    const publicUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${slug}`
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: "-0.5px" }}>You're all set!</Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-            Your AI twin is ready. Review your profile or share your link.
-          </Typography>
-        </Box>
-        <Paper variant="outlined" sx={{ borderRadius: 2, p: 2 }}>
-          <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 1, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-            Your public link
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Box sx={{ flex: 1, fontFamily: "monospace", fontSize: 13, bgcolor: "#1b1b2a", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 1, px: 1.5, py: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {publicUrl}
-            </Box>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => navigator.clipboard.writeText(publicUrl)}
-              sx={{ borderColor: "rgba(255,255,255,0.16)", color: "text.primary", whiteSpace: "nowrap", height: 40, flexShrink: 0 }}
-            >
-              Copy
-            </Button>
-          </Box>
-        </Paper>
-        <Box sx={{ display: "flex", gap: 1.5 }}>
-          <Button
-            variant="contained"
-            href="/dashboard/sections"
-            component="a"
-            sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
-          >
-            Review profile
-          </Button>
-          <Button
-            variant="outlined"
-            href={publicUrl}
-            component="a"
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{ borderColor: "rgba(255,255,255,0.16)", color: "text.primary", borderRadius: 2, py: 1.2 }}
-          >
-            Preview my page
-          </Button>
-        </Box>
       </Box>
     )
   }
@@ -199,7 +149,7 @@ export default function OnboardingFlow() {
         sx={{
           borderRadius: 2, borderStyle: "dashed", p: 4,
           textAlign: "center", cursor: "pointer",
-          "&:hover": { borderColor: "black" }, transition: "border-color 0.15s",
+          "&:hover": { borderColor: "rgba(255,255,255,0.25)" }, transition: "border-color 0.15s",
         }}
       >
         <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -226,11 +176,11 @@ export default function OnboardingFlow() {
           variant="contained"
           onClick={handleParse}
           disabled={!fileName}
-          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
+          sx={{ bgcolor: "#8b6dff", color: "#0a0a0f", "&:hover": { bgcolor: "#7c5ef0" }, borderRadius: 2, py: 1.2 }}
         >
           Import CV
         </Button>
-        <Button variant="text" onClick={() => setStep("done")} sx={{ color: "text.secondary" }}>
+        <Button variant="text" onClick={() => router.push("/dashboard/sections")} sx={{ color: "text.secondary" }}>
           Skip — add manually
         </Button>
       </Box>

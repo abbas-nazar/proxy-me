@@ -301,7 +301,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
 
           {/* Empty state + optional intro form */}
           {!hasMessages && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "70vh", textAlign: "center", padding: "0 4px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)", textAlign: "center", padding: "0 4px" }}>
               <Avatar name={displayName} />
               <h1 style={{ margin: 0, fontSize: "clamp(24px, 6vw, 36px)", fontWeight: 700, letterSpacing: "-1px", color: TEXT, fontStyle: "italic" }}>
                 Talk to {displayName}
@@ -367,7 +367,19 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
             </div>
           )}
 
-          {error && <p style={{ color: "#f87171", fontSize: 12, textAlign: "center" }}>{error.message}</p>}
+          {error && (
+            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
+              <div style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: "18px 18px 18px 4px", padding: "12px 16px", maxWidth: "78%", display: "flex", flexDirection: "column", gap: 8 }}>
+                <p style={{ margin: 0, fontSize: 13, color: "#f87171" }}>Something went wrong. The message wasn&apos;t sent.</p>
+                <button
+                  onClick={() => submit(inputValue || undefined)}
+                  style={{ alignSelf: "flex-start", background: "rgba(248,113,113,0.15)", border: "1px solid rgba(248,113,113,0.3)", borderRadius: 8, padding: "5px 14px", fontSize: 12, color: "#f87171", cursor: "pointer" }}
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Contact prompt — only shown if email not already provided in intro */}
           {showContactPrompt && !contactCaptured && (
@@ -453,11 +465,13 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                   placeholder="Your email (optional)"
                   onKeyDown={(e) => e.key === "Enter" && submitIntro()}
                   style={inputStyle(introFocused === "email")}
+                  inputMode="email"
+                  autoComplete="email"
                 />
               </div>
               <button
                 onClick={submitIntro}
-                style={{ marginTop: 12, background: "#8b6dff", color: "#0a0a0f", border: "none", borderRadius: 8, padding: "9px 24px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                style={{ marginTop: 12, background: "#8b6dff", color: "#0a0a0f", border: "none", borderRadius: 8, padding: "11px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", touchAction: "manipulation" }}
               >
                 Let's chat
               </button>

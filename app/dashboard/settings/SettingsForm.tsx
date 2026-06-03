@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useClerk } from "@clerk/nextjs"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Switch from "@mui/material/Switch"
@@ -50,6 +51,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 
 export default function SettingsForm({ user }: Props) {
   const router = useRouter()
+  const { signOut } = useClerk()
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${user.slug}` : `/${user.slug}`
 
   const [isPublic, setIsPublic] = useState(user.isPublic)
@@ -144,7 +146,7 @@ export default function SettingsForm({ user }: Props) {
       })
       const data = await res.json()
       if (!res.ok) { setDeleteError(data.error ?? "Failed to delete."); return }
-      router.push("/sign-in")
+      await signOut({ redirectUrl: "/" })
     } catch {
       setDeleteError("Something went wrong.")
     } finally {

@@ -102,7 +102,7 @@ export default function ImportFlow() {
   if (step === "parsing") {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
-        <CircularProgress size={28} sx={{ color: "black" }} />
+        <CircularProgress size={28} sx={{ color: "#8b6dff" }} />
         <Typography variant="body2" sx={{ color: "text.secondary" }}>Extracting your profile…</Typography>
       </Box>
     )
@@ -122,13 +122,13 @@ export default function ImportFlow() {
               variant="outlined"
               sx={{
                 px: 2, py: 1.5, borderRadius: 2, cursor: "pointer",
-                "&:hover": { borderColor: "black" }, transition: "border-color 0.15s",
-                borderColor: s.included ? "black" : "divider",
+                "&:hover": { borderColor: "rgba(255,255,255,0.25)" }, transition: "border-color 0.15s",
+                borderColor: s.included ? "rgba(139,109,255,0.5)" : "divider",
               }}
               onClick={() => toggleSection(s.key)}
             >
               <FormControlLabel
-                control={<Checkbox checked={s.included} size="small" sx={{ color: "black", "&.Mui-checked": { color: "black" } }} />}
+                control={<Checkbox checked={s.included} size="small" sx={{ color: "#8b6dff", "&.Mui-checked": { color: "#8b6dff" } }} />}
                 label={
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>{s.label}</Typography>
@@ -146,7 +146,7 @@ export default function ImportFlow() {
             variant="contained"
             onClick={handleSave}
             disabled={saving || reviewSections.every((s) => !s.included)}
-            sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
+            sx={{ bgcolor: "#8b6dff", color: "#0a0a0f", "&:hover": { bgcolor: "#8b6dff" }, borderRadius: 2, py: 1.2 }}
           >
             {saving ? "Saving…" : "Save sections"}
           </Button>
@@ -166,7 +166,7 @@ export default function ImportFlow() {
         sx={{
           borderRadius: 2, borderStyle: "dashed", p: 4,
           textAlign: "center", cursor: "pointer",
-          "&:hover": { borderColor: "black" }, transition: "border-color 0.15s",
+          "&:hover": { borderColor: "rgba(255,255,255,0.25)" }, transition: "border-color 0.15s",
         }}
       >
         <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -193,7 +193,7 @@ export default function ImportFlow() {
           variant="contained"
           onClick={handleParse}
           disabled={!fileName}
-          sx={{ bgcolor: "black", "&:hover": { bgcolor: "#222" }, borderRadius: 2, py: 1.2 }}
+          sx={{ bgcolor: "#8b6dff", color: "#0a0a0f", "&:hover": { bgcolor: "#8b6dff" }, borderRadius: 2, py: 1.2 }}
         >
           Import CV
         </Button>
