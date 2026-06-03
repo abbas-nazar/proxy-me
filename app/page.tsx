@@ -270,7 +270,7 @@ function Hero() {
               margin: "0 0 22px",
             }}
           >
-            Your proxy answers recruiters, so you don't have to.
+            Your AI proxy talks to recruiters. You just show up for the good ones.
           </h1>
 
           <p
@@ -282,7 +282,7 @@ function Hero() {
               maxWidth: 520,
             }}
           >
-            Claim your handle, drop in your CV or LinkedIn export, and Proxy-Me builds a profile recruiters can chat with — any hour, any question, any language.
+            Claim your handle, drop in your CV or LinkedIn export, and Proxy-Me builds a profile recruiters can chat with any hour, any question, any language.
           </p>
 
           <HandleField size="lg" />
@@ -327,7 +327,7 @@ const STEPS = [
     num: "03",
     icon: "🚀",
     title: "Share your link",
-    desc: "Send it to recruiters. Your proxy handles every question — 24/7, any timezone, any language.",
+    desc: "Send it to recruiters. Your proxy handles every question 24/7, any timezone, any language.",
   },
 ]
 
@@ -564,13 +564,13 @@ function Setup() {
               Your whole career, in one shareable profile.
             </h2>
             <p style={{ fontSize: 16, color: muted, lineHeight: 1.65, margin: "0 0 24px" }}>
-              Upload a PDF or paste your LinkedIn export. Proxy-Me reads everything — experience, education, skills, projects — and turns it into a structured profile your proxy can speak from.
+              Upload a PDF or paste your LinkedIn export. Proxy-Me reads everything experience, education, skills, projects and turns it into a structured profile your proxy can speak from.
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                "Instant CV parsing — takes seconds",
+                "Instant CV parsing takes seconds",
                 "Edit or add sections manually",
-                "Always up to date — re-import anytime",
+                "Always up to date re-import anytime",
               ].map((item) => (
                 <li
                   key={item}

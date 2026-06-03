@@ -3,7 +3,6 @@ import { db } from "@/lib/db"
 import { visitorContacts } from "@/db/schema"
 import { eq, desc } from "drizzle-orm"
 import Box from "@mui/material/Box"
-
 import Typography from "@mui/material/Typography"
 import Paper from "@mui/material/Paper"
 import Table from "@mui/material/Table"
@@ -23,13 +22,27 @@ export default async function LeadsPage() {
 
   return (
     <Box sx={{ px: { xs: 3, md: 5 }, py: 4, maxWidth: 900, mx: "auto" }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.3px" }}>
-          Leads
-        </Typography>
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          {contacts.length} contact{contacts.length !== 1 ? "s" : ""} collected.
-        </Typography>
+      <Box sx={{ mb: 3, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: "-0.3px" }}>
+            Leads
+          </Typography>
+          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            {contacts.length} contact{contacts.length !== 1 ? "s" : ""} collected.
+          </Typography>
+        </Box>
+        {contacts.length > 0 && (
+          <a
+            href="/api/leads/export"
+            style={{
+              fontSize: 12, color: "#9a9aae", textDecoration: "none",
+              border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8,
+              padding: "6px 14px", whiteSpace: "nowrap", flexShrink: 0,
+            }}
+          >
+            Export CSV
+          </a>
+        )}
       </Box>
 
       {contacts.length === 0 ? (

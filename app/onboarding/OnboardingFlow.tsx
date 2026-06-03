@@ -182,7 +182,7 @@ export default function OnboardingFlow() {
           Import CV
         </Button>
         <Button variant="text" onClick={() => router.push("/dashboard/sections")} sx={{ color: "text.secondary" }}>
-          Skip — add manually
+          Skip, add manually
         </Button>
       </Box>
     </Box>

@@ -20,11 +20,36 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 type ContactCollection = { enabled: boolean; requireName: boolean; requireEmail: boolean }
 
 const TONE_PRESETS = [
-  { label: "Professional", value: "Speak professionally and confidently. Keep answers structured and precise. Avoid slang or overly casual language." },
-  { label: "Casual & warm", value: "Be conversational and friendly, like chatting with someone over coffee. Use natural language, contractions, and a bit of warmth." },
-  { label: "Direct & concise", value: "Be direct and to the point. Skip pleasantries. Use bullet points when listing things. Keep answers short." },
-  { label: "Technical", value: "Lean into technical depth. Use correct terminology, reference specific tools and architectures, and don't over-simplify." },
-  { label: "Storyteller", value: "Answer with narrative and context. Share the 'why' behind decisions, not just the 'what'. Make it engaging and human." },
+  {
+    label: "Professional",
+    value: `Tone: Speak professionally and confidently. Keep answers structured and precise. Avoid slang or overly casual language.
+
+Example: "I have five years of backend experience, primarily in distributed systems and API design. Happy to walk through the specifics if that would be helpful."`,
+  },
+  {
+    label: "Casual & warm",
+    value: `Tone: Be conversational and friendly, like chatting with someone over coffee. Use natural language, contractions, and a bit of warmth.
+
+Example: "Yeah, I've been doing backend work for about five years, mostly APIs and distributed systems. Always happy to chat more about it!"`,
+  },
+  {
+    label: "Direct & concise",
+    value: `Tone: Be direct and to the point. Skip pleasantries. Keep answers short.
+
+Example: "Five years backend. Distributed systems, API design. Open to discussing details."`,
+  },
+  {
+    label: "Technical",
+    value: `Tone: Lean into technical depth. Use correct terminology, reference specific tools and architectures, don't over-simplify.
+
+Example: "Five years backend mostly event-driven architectures, REST and gRPC APIs, Postgres at scale. Can go deep on any of those if useful."`,
+  },
+  {
+    label: "Storyteller",
+    value: `Tone: Answer with narrative and context. Share the why behind decisions, not just the what. Make it engaging and human.
+
+Example: "I got into backend work almost by accident, started fixing slow queries on a side project and got hooked. Five years later I'm still chasing that same problem at much larger scale."`,
+  },
 ]
 
 type Props = {
@@ -212,7 +237,7 @@ export default function SettingsForm({ user }: Props) {
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, maxWidth: 600 }}>
 
       {/* Twin Status */}
-      <Section title="Twin Status" subtitle="Control whether visitors can access your AI twin.">
+      <Section title="Proxy Status" subtitle="Control whether visitors can access your proxy.">
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -302,7 +327,7 @@ export default function SettingsForm({ user }: Props) {
       </Section>
 
       {/* Voice & Tone */}
-      <Section title="Voice & Tone" subtitle="Describe how your twin should sound. Pick a preset to get started, then edit it to match your style.">
+      <Section title="Voice & Tone" subtitle="Pick a preset or write your own. Each entry has a tone description and an example reply,  edit the example to sound more like you.">
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
           {TONE_PRESETS.map((preset) => (
             <Chip
@@ -322,14 +347,17 @@ export default function SettingsForm({ user }: Props) {
         </Box>
         <TextField
           multiline
-          rows={4}
+          rows={6}
           fullWidth
           size="small"
-          placeholder="e.g. I'm direct and technical. Skip pleasantries, use bullet points, and be concise."
+          placeholder={"Tone: [describe how you want to come across]\n\nExample: \"[write a sentence or two exactly as you'd say it, your proxy will match this]\""}
           value={personality}
           onChange={(e) => setPersonality(e.target.value)}
-          sx={{ mb: 2 }}
+          sx={{ mb: 1 }}
         />
+        <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 2 }}>
+          The example is the most important part, write it in your own words and your proxy will sound like you.
+        </Typography>
         <Button
           variant="contained"
           size="small"

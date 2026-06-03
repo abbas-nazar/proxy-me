@@ -12,8 +12,8 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params
   const [user] = await db.select().from(users).where(eq(users.slug, slug))
   if (!user) return {}
-  const title = user.displayName ? `${user.displayName} — AI Twin` : `${slug} — AI Twin`
-  const description = user.headline ?? `Chat with ${user.displayName ?? slug}'s AI twin on proxy-me.`
+  const title = user.displayName ? `${user.displayName} AI Proxy` : `${slug} AI Proxy`
+  const description = user.headline ?? `Chat with ${user.displayName ?? slug}'s AI proxy on proxy-me.`
   return {
     title,
     description,

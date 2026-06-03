@@ -2,10 +2,14 @@ import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import { extractText, getDocumentProxy } from "unpdf"
 import { parseCVText } from "@/lib/parser"
+import { rateLimit } from "@/lib/rateLimit"
 
 export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  if (!rateLimit(`parse:${userId}`, 5, 60_000))
+    return NextResponse.json({ error: "Too many requests. Wait a moment before trying again." }, { status: 429 })
 
   const formData = await req.formData()
   const file = formData.get("file") as File | null

@@ -471,7 +471,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
           {contactDone && (
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
               <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: "18px 18px 18px 4px", padding: "10px 16px", fontSize: 14, color: TEXT }}>
-                Thanks for sharing your details — we'll be in touch!
+                Thanks for sharing your details. We'll be in touch!
               </div>
             </div>
           )}

@@ -9,7 +9,8 @@ export default async function DashboardPage() {
 
   const [sections, sessions, contacts] = await Promise.all([
     db.select().from(profileSections).where(eq(profileSections.userId, user.id)),
-    db.select().from(chatSessions).where(eq(chatSessions.userId, user.id)),
+    db.select().from(chatSessions).where(eq(chatSessions.userId, user.id))
+      .then((rows) => rows.filter((s) => Array.isArray(s.messages) && (s.messages as unknown[]).length > 0)),
     db.select().from(visitorContacts).where(eq(visitorContacts.userId, user.id)),
   ])
 
@@ -25,9 +26,9 @@ export default async function DashboardPage() {
   ]
 
   const quickActions = [
-    { label: "Edit profile", description: "Update what your AI twin knows about you.", href: "/dashboard/sections" },
-    { label: "Import CV", description: "Upload a PDF and Claude will extract your profile.", href: "/dashboard/import" },
-    { label: "Settings", description: "Configure personality, suggested questions, contact collection.", href: "/dashboard/settings" },
+    { label: "Edit profile", description: "Update what your proxy knows about you.", href: "/dashboard/sections" },
+    { label: "Import CV", description: "Upload a PDF to automatically fill in your profile sections.", href: "/dashboard/import" },
+    { label: "Settings", description: "Configure tone, suggested questions, and contact collection.", href: "/dashboard/settings" },
   ]
 
   return (
@@ -38,7 +39,7 @@ export default async function DashboardPage() {
           Welcome, <em style={{ fontWeight: 400 }}>{user.displayName}</em>
         </h1>
         <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
-          Your AI twin is{" "}
+          Your proxy is{" "}
           <span style={{ color: user.isPublic ? "#4ade80" : "rgba(255,255,255,0.35)", fontWeight: 500 }}>
             {user.isPublic ? "active" : "off"}
           </span>
@@ -69,7 +70,7 @@ export default async function DashboardPage() {
                     <span style={{ color: "#c4b5fd", fontWeight: 500 }}>{s}</span>
                   </span>
                 ))}
-                {" "}to give your AI twin enough context to answer well.{" "}
+                {" "}to give your proxy enough context to answer well.{" "}
                 <a href="/dashboard/sections" style={{ color: "#8b6dff", textDecoration: "underline", textUnderlineOffset: 2 }}>
                   Edit profile →
                 </a>
