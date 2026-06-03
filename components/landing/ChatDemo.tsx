@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import ChatBubble from "@/components/chat/ChatBubble"
 import ChatHeader from "@/components/chat/ChatHeader"
+import { BASE_URL } from "@/lib/baseUrl"
 
 type Message = {
   role: "recruiter" | "proxy"
@@ -168,7 +169,7 @@ export default function ChatDemo() {
       `}</style>
       <div style={styles.card}>
         {/* Header */}
-        <ChatHeader displayName="Sarah Chen" handle="proxy-me.io/sarahchen" />
+        <ChatHeader displayName="Sarah Chen" handle={`${BASE_URL.replace(/^https?:\/\//, "")}/sarahchen`} />
 
         {/* Messages */}
         <div style={styles.messagesArea} ref={containerRef}>

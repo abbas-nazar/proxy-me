@@ -5,6 +5,7 @@ import { users } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import Link from "next/link"
 import ChatDemoClient from "@/components/landing/ChatDemoClient"
+import { BASE_URL } from "@/lib/baseUrl"
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const accent = "#8b6dff"
@@ -114,7 +115,7 @@ function HandleField({ size = "md" }: { size?: "md" | "lg" }) {
           borderRight: `1px solid ${border}`,
         }}
       >
-        proxy-me.io/
+        {BASE_URL.replace(/^https?:\/\//, "")}/
       </span>
       <input
         type="text"
@@ -295,7 +296,7 @@ function Hero() {
               letterSpacing: "0.02em",
             }}
           >
-            ✓ Free to claim · Live in under 5 minutes · You approve every answer
+            ✓ Free to claim · Live in under 5 minutes · Always sounds like you
           </p>
         </div>
 
@@ -314,7 +315,7 @@ const STEPS = [
     num: "01",
     icon: "🔗",
     title: "Claim your handle",
-    desc: "Pick proxy-me.io/yourname in seconds. Your personal link, yours forever.",
+    desc: `Pick ${BASE_URL.replace(/^https?:\/\//, "")}/yourname in seconds. Your personal link, yours forever.`,
   },
   {
     num: "02",
@@ -326,7 +327,7 @@ const STEPS = [
     num: "03",
     icon: "🚀",
     title: "Share your link",
-    desc: "Send it to recruiters. Your AI proxy handles every question — 24/7, any timezone, any language.",
+    desc: "Send it to recruiters. Your proxy handles every question — 24/7, any timezone, any language.",
   },
 ]
 
@@ -405,11 +406,11 @@ function HowItWorks() {
 
 // ─── Setup section ─────────────────────────────────────────────────────────────
 const SECTION_CHIPS = [
-  { label: "Senior Backend Engineer", accent: true },
-  { label: "Go / Postgres", accent: true },
-  { label: "Platform Infra", accent: true },
-  { label: "Remote / NYC" },
-  { label: "4M+ txn/day" },
+  { label: "Bio", accent: true },
+  { label: "Experience", accent: true },
+  { label: "Education", accent: true },
+  { label: "Skills", accent: true },
+  { label: "Projects", accent: true },
 ]
 
 function ProfileCardMockup() {
@@ -454,7 +455,7 @@ function ProfileCardMockup() {
               fontFamily: "var(--font-jetbrains-mono, monospace)",
             }}
           >
-            proxy-me.io/sarahchen
+            {BASE_URL.replace(/^https?:\/\//, "")}/sarahchen
           </div>
         </div>
         <div
@@ -528,7 +529,7 @@ function ProfileCardMockup() {
         }}
       >
         <span style={{ fontSize: 14 }}>✨</span>
-        CV parsed · 6 sections extracted · last updated 2h ago
+        CV parsed · 5 sections extracted
       </div>
     </div>
   )
@@ -563,11 +564,11 @@ function Setup() {
               Your whole career, in one shareable profile.
             </h2>
             <p style={{ fontSize: 16, color: muted, lineHeight: 1.65, margin: "0 0 24px" }}>
-              Upload a PDF or paste your LinkedIn export. Proxy-Me reads everything — experience, education, skills, projects — and turns it into a structured profile your AI can answer from.
+              Upload a PDF or paste your LinkedIn export. Proxy-Me reads everything — experience, education, skills, projects — and turns it into a structured profile your proxy can speak from.
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                "Instant CV parsing with Claude AI",
+                "Instant CV parsing — takes seconds",
                 "Edit or add sections manually",
                 "Always up to date — re-import anytime",
               ].map((item) => (

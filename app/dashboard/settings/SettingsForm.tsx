@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useClerk } from "@clerk/nextjs"
-import { profileUrl } from "@/lib/baseUrl"
+import { BASE_URL, profileUrl } from "@/lib/baseUrl"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Switch from "@mui/material/Switch"
@@ -259,7 +259,7 @@ export default function SettingsForm({ user }: Props) {
           onChange={(e) => { setNewSlug(e.target.value); setSlugError("") }}
           error={!!slugError}
           helperText={slugError || " "}
-          slotProps={{ input: { startAdornment: <Typography variant="caption" sx={{ color: "text.disabled", mr: 0.5, whiteSpace: "nowrap" }}>proxy-me.io/</Typography> } }}
+          slotProps={{ input: { startAdornment: <Typography variant="caption" sx={{ color: "text.disabled", mr: 0.5, whiteSpace: "nowrap" }}>{BASE_URL.replace(/^https?:\/\//, "")}/</Typography> } }}
           sx={{ mb: 1 }}
         />
         <Button
