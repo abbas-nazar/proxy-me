@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { BASE_URL } from "@/lib/baseUrl"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import TextField from "@mui/material/TextField"
@@ -106,7 +107,7 @@ export default function OnboardingFlow() {
             input: {
               startAdornment: (
                 <InputAdornment position="start">
-                  <Typography variant="caption" sx={{ color: "text.disabled" }}>proxy-me.app/</Typography>
+                  <Typography variant="caption" sx={{ color: "text.disabled" }}>{BASE_URL.replace(/^https?:\/\//, "")}/</Typography>
                 </InputAdornment>
               ),
             },

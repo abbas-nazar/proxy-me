@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useClerk } from "@clerk/nextjs"
+import { profileUrl } from "@/lib/baseUrl"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Switch from "@mui/material/Switch"
@@ -52,7 +53,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 export default function SettingsForm({ user }: Props) {
   const router = useRouter()
   const { signOut } = useClerk()
-  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${user.slug}` : `/${user.slug}`
+  const publicUrl = profileUrl(user.slug)
 
   const [isPublic, setIsPublic] = useState(user.isPublic)
   const [copied, setCopied] = useState(false)
@@ -75,6 +76,11 @@ export default function SettingsForm({ user }: Props) {
   const [contact, setContact] = useState<ContactCollection>(user.contactCollection)
   const [savingContact, setSavingContact] = useState(false)
   const [contactSaved, setContactSaved] = useState(false)
+
+  const [newSlug, setNewSlug] = useState(user.slug)
+  const [slugError, setSlugError] = useState("")
+  const [savingSlug, setSavingSlug] = useState(false)
+  const [slugSaved, setSlugSaved] = useState(false)
 
   const [deleteSlug, setDeleteSlug] = useState("")
   const [deleteError, setDeleteError] = useState("")
@@ -165,6 +171,30 @@ export default function SettingsForm({ user }: Props) {
     }
   }
 
+  async function saveSlug() {
+    const value = newSlug.trim().toLowerCase()
+    if (!value || !/^[a-z0-9-]+$/.test(value)) {
+      setSlugError("Only lowercase letters, numbers, and hyphens.")
+      return
+    }
+    setSavingSlug(true)
+    setSlugError("")
+    try {
+      const res = await fetch("/api/user/slug", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: value }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setSlugError(data.error ?? "Something went wrong."); return }
+      setSlugSaved(true)
+      setTimeout(() => setSlugSaved(false), 2000)
+      router.refresh()
+    } finally {
+      setSavingSlug(false)
+    }
+  }
+
   function copyLink() {
     navigator.clipboard.writeText(publicUrl)
     setCopied(true)
@@ -217,6 +247,29 @@ export default function SettingsForm({ user }: Props) {
             {copied ? "Copied!" : "Copy"}
           </Button>
         </Box>
+      </Section>
+
+      {/* Handle */}
+      <Section title="Handle" subtitle="Change your public URL. All existing links to the old handle will stop working.">
+        <TextField
+          fullWidth
+          size="small"
+          label="Username"
+          value={newSlug}
+          onChange={(e) => { setNewSlug(e.target.value); setSlugError("") }}
+          error={!!slugError}
+          helperText={slugError || " "}
+          slotProps={{ input: { startAdornment: <Typography variant="caption" sx={{ color: "text.disabled", mr: 0.5, whiteSpace: "nowrap" }}>proxy-me.io/</Typography> } }}
+          sx={{ mb: 1 }}
+        />
+        <Button
+          variant="contained"
+          size="small"
+          onClick={saveSlug}
+          disabled={savingSlug || !newSlug.trim() || newSlug.trim() === user.slug}
+        >
+          {slugSaved ? "Saved!" : savingSlug ? "Saving…" : "Change handle"}
+        </Button>
       </Section>
 
       {/* Profile */}

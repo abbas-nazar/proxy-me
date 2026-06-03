@@ -32,7 +32,13 @@ function EmptySectionCard({ type, title, onSave }: { type: string; title: string
   return (
     <button
       onClick={handleCreate}
-      className="w-full text-left border border-dashed rounded-lg px-4 py-3 text-sm text-gray-400 hover:border-black hover:text-black transition-colors"
+      style={{
+        width: "100%", textAlign: "left", border: "1px dashed rgba(255,255,255,0.12)",
+        borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#6e6e82",
+        background: "transparent", cursor: "pointer", transition: "border-color 0.15s, color 0.15s",
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(139,109,255,0.4)"; (e.currentTarget as HTMLButtonElement).style.color = "#c4b5fd" }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLButtonElement).style.color = "#6e6e82" }}
     >
       + Add {title.toLowerCase()}
     </button>
@@ -67,11 +73,11 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
   }, {})
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {CORE_TYPES.map(({ type, title }) =>
         existingTypes.has(type) ? (
-          <div key={type} className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">{title}</h2>
+          <div key={type} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{title}</div>
             {(grouped[title] ?? []).map((section) => (
               <SectionCard
                 key={section.id + (section.id === newlyCreatedId ? "-new" : "")}
@@ -83,8 +89,8 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
             ))}
           </div>
         ) : (
-          <div key={type} className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">{title}</h2>
+          <div key={type} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{title}</div>
             <EmptySectionCard type={type} title={title} onSave={(s) => handleAdd(s, true)} />
           </div>
         )
@@ -93,8 +99,8 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
       {Object.entries(grouped)
         .filter(([label]) => !CORE_TYPES.some((c) => c.title === label))
         .map(([label, group]) => (
-          <div key={label} className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400">{label}</h2>
+          <div key={label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{label}</div>
             {group.map((section) => (
               <SectionCard
                 key={section.id + (section.id === newlyCreatedId ? "-new" : "")}

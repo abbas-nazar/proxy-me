@@ -4,10 +4,21 @@ import { db } from "@/lib/db"
 import { users, profileSections, chatSessions, visitorContacts } from "@/db/schema"
 import { eq, sql, and, isNull } from "drizzle-orm"
 import { buildSystemPrompt } from "@/lib/systemPrompt"
+import { rateLimit } from "@/lib/rateLimit"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+  if (!rateLimit(`chat:${ip}`, 30, 60_000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   const { messages, slug, sessionId } = await req.json()
+
+  const lastMessage = messages?.[messages.length - 1]
+  const lastText = lastMessage?.parts?.filter((p: { type: string }) => p.type === "text").map((p: { text: string }) => p.text).join("") ?? ""
+  if (lastText.length > 8000)
+    return NextResponse.json({ error: "Message too long. Please keep it under 8000 characters." }, { status: 400 })
 
   if (!slug)
     return NextResponse.json({ error: "Missing slug" }, { status: 400 })

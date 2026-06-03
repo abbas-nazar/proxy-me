@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import ChatBubble from "@/components/chat/ChatBubble"
+import ChatHeader from "@/components/chat/ChatHeader"
 
 type Message = {
   role: "recruiter" | "proxy"
@@ -62,59 +63,6 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     maxWidth: 420,
     width: "100%",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "14px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.09)",
-    background: "#1b1b2a",
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: "50%",
-    background:
-      "repeating-linear-gradient(45deg, #2a2a3e 0px, #2a2a3e 4px, #1b1b2a 4px, #1b1b2a 8px)",
-    border: "1px solid rgba(139,109,255,0.3)",
-    flexShrink: 0,
-  },
-  headerMeta: {
-    flex: 1,
-    minWidth: 0,
-  },
-  headerName: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: "#f3f1ee",
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-  },
-  proxyTag: {
-    fontSize: 10,
-    background: "rgba(139,109,255,0.2)",
-    color: "#8b6dff",
-    borderRadius: 4,
-    padding: "1px 5px",
-    fontFamily: "var(--font-jetbrains-mono, monospace)",
-    letterSpacing: "0.04em",
-    fontWeight: 500,
-  },
-  headerHandle: {
-    fontSize: 11,
-    color: "#6e6e82",
-    fontFamily: "var(--font-jetbrains-mono, monospace)",
-    marginTop: 1,
-  },
-  onlineDot: {
-    width: 7,
-    height: 7,
-    borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 6px #22c55e",
-    flexShrink: 0,
   },
   messagesArea: {
     flex: 1,
@@ -220,17 +168,7 @@ export default function ChatDemo() {
       `}</style>
       <div style={styles.card}>
         {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.avatar} />
-          <div style={styles.headerMeta}>
-            <div style={styles.headerName}>
-              Sarah Chen&apos;s Proxy
-              <span style={styles.proxyTag}>proxy</span>
-            </div>
-            <div style={styles.headerHandle}>proxy-me.io/sarahchen</div>
-          </div>
-          <div style={styles.onlineDot} />
-        </div>
+        <ChatHeader displayName="Sarah Chen" handle="proxy-me.io/sarahchen" />
 
         {/* Messages */}
         <div style={styles.messagesArea} ref={containerRef}>

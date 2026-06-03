@@ -4,6 +4,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { UserButton } from "@clerk/nextjs"
+import { BASE_URL } from "@/lib/baseUrl"
 import Box from "@mui/material/Box"
 import Drawer from "@mui/material/Drawer"
 import List from "@mui/material/List"
@@ -211,10 +212,10 @@ export default function DashboardLayout({ children, slug }: { children: React.Re
   const [copied, setCopied] = useState(false)
   const pathname = usePathname()
   const width = collapsed ? DRAWER_COLLAPSED : DRAWER_WIDTH
-  const publicUrl = `proxy-me.app/${slug}`
+  const publicUrl = `${BASE_URL.replace(/^https?:\/\//, "")}/${slug}`
 
   function copyLink() {
-    navigator.clipboard.writeText(`https://proxy-me.app/${slug}`)
+    navigator.clipboard.writeText(`${BASE_URL}/${slug}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

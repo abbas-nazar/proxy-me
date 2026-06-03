@@ -3,6 +3,8 @@ import { users, profileSections } from "@/db/schema"
 import { eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import ChatInterface from "@/components/chat/ChatInterface"
+import { profileUrl } from "@/lib/baseUrl"
+import { clerkClient } from "@clerk/nextjs/server"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -15,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
   return {
     title,
     description,
-    openGraph: { title, description, url: `https://proxy-me.app/${slug}` },
+    openGraph: { title, description, url: profileUrl(slug) },
     twitter: { card: "summary", title, description },
   }
 }
@@ -50,6 +52,13 @@ export default async function PublicProfilePage({ params }: Props) {
   const contactCollection = (user.contactCollection as { enabled: boolean; requireName: boolean; requireEmail: boolean }) ?? { enabled: false, requireName: false, requireEmail: false }
   const suggestedQuestions = (user.suggestedQuestions as string[]) ?? []
 
+  let imageUrl: string | undefined
+  try {
+    const client = await clerkClient()
+    const clerkUser = await client.users.getUser(user.clerkId)
+    imageUrl = clerkUser.imageUrl ?? undefined
+  } catch { /* not critical */ }
+
   return (
     <ChatInterface
       slug={slug}
@@ -58,6 +67,7 @@ export default async function PublicProfilePage({ params }: Props) {
       bio={bio?.text ?? undefined}
       suggestedQuestions={suggestedQuestions}
       contactCollection={contactCollection}
+      imageUrl={imageUrl}
     />
   )
 }

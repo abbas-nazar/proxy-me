@@ -4,6 +4,10 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { useRef, useEffect, useState, useCallback } from "react"
 import ChatBubble from "./ChatBubble"
+import ChatHeader from "./ChatHeader"
+import TextField from "@mui/material/TextField"
+import InputAdornment from "@mui/material/InputAdornment"
+import IconButton from "@mui/material/IconButton"
 
 type ContactCollection = { enabled: boolean; requireName: boolean; requireEmail: boolean }
 
@@ -14,6 +18,7 @@ type Props = {
   bio?: string
   suggestedQuestions?: string[]
   contactCollection?: ContactCollection
+  imageUrl?: string
 }
 
 const INACTIVITY_MS = 5 * 60 * 1000
@@ -36,8 +41,24 @@ type SavedSession = {
   savedAt: number
 }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, imageUrl }: { name: string; imageUrl?: string }) {
   const initial = name.charAt(0).toUpperCase()
+  if (imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={imageUrl}
+        alt={name}
+        style={{
+          width: 72, height: 72, borderRadius: 20,
+          border: `1px solid ${BORDER}`,
+          boxShadow: "0 0 24px rgba(139,109,255,0.4)",
+          objectFit: "cover",
+          marginBottom: 20,
+        }}
+      />
+    )
+  }
   return (
     <div style={{
       width: 72, height: 72, borderRadius: 20,
@@ -53,22 +74,8 @@ function Avatar({ name }: { name: string }) {
   )
 }
 
-function inputStyle(focused: boolean): React.CSSProperties {
-  return {
-    background: "#14141f",
-    border: `1px solid ${focused ? "rgba(255,255,255,0.3)" : BORDER}`,
-    borderRadius: 8,
-    padding: "9px 12px",
-    fontSize: 13,
-    color: TEXT,
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box",
-    transition: "border-color 0.15s",
-  }
-}
 
-export default function ChatInterface({ slug, displayName, headline, suggestedQuestions = [], contactCollection }: Props) {
+export default function ChatInterface({ slug, displayName, headline, suggestedQuestions = [], contactCollection, imageUrl }: Props) {
   // --- session state ---
   // Initialise with a fresh UUID synchronously; overwritten if a saved session is resumed
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID())
@@ -83,8 +90,8 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   // --- intro form (name required, email optional) ---
   const [introName, setIntroName] = useState("")
   const [introEmail, setIntroEmail] = useState("")
-  const [introFocused, setIntroFocused] = useState<string | null>(null)
   const [introNameError, setIntroNameError] = useState(false)
+  const [introEmailError, setIntroEmailError] = useState(false)
   const [introDone, setIntrosDone] = useState(false)
 
   // --- resume banner ---
@@ -194,9 +201,14 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     localStorage.setItem(LS_SESSION(slug), JSON.stringify(saved))
   }, [messages, sessionId, introName, introEmail, slug])
 
+  function isValidEmail(email: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  }
+
   async function saveContact() {
     const emailToUse = contactEmail.trim() || introEmail.trim()
     if (!emailToUse) { setContactError("Email is required."); return }
+    if (!isValidEmail(emailToUse)) { setContactError("Please enter a valid email address."); return }
     setContactSaving(true)
     setContactError("")
     try {
@@ -224,8 +236,9 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   function submitIntro() {
     if (!introName.trim()) { setIntroNameError(true); return }
     setIntroNameError(false)
+    if (introEmail.trim() && !isValidEmail(introEmail.trim())) { setIntroEmailError(true); return }
+    setIntroEmailError(false)
     const name = introName.trim()
-    // Only save to DB if email was provided — send without sessionId since no chat session exists yet
     if (introEmail.trim()) {
       setContactEmail(introEmail)
       setContactName(name)
@@ -239,16 +252,19 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     setIntrosDone(true)
   }
 
+  const MAX_CHARS = 8000
+
   function submit(text?: string) {
     const t = text ?? inputValue.trim()
     if (!t || status === "streaming" || status === "submitted") return
+    if (t.length > MAX_CHARS) return
     sendMessage({ parts: [{ type: "text", text: t }] })
     setInputValue("")
     setShowContactPrompt(false)
     startInactivityTimer()
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+  function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit() }
   }
 
@@ -260,7 +276,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: BG, color: TEXT, alignItems: "center", justifyContent: "center" }}>
         <div style={{ maxWidth: 460, width: "100%", padding: "0 20px", boxSizing: "border-box" }}>
-          <Avatar name={displayName} />
+          <Avatar name={displayName} imageUrl={imageUrl} />
           <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700, letterSpacing: "-0.5px" }}>Welcome back{resumeSession.name ? `, ${resumeSession.name}` : ""}!</h2>
           <p style={{ margin: "0 0 24px", fontSize: 13, color: MUTED, lineHeight: 1.6 }}>
             You have a previous conversation with {displayName}.
@@ -295,6 +311,9 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: BG, color: TEXT }}>
 
+      {/* Header */}
+      <ChatHeader displayName={displayName} headline={headline} imageUrl={imageUrl} style={{ background: "#0e0e16", padding: "12px 20px" }} />
+
       {/* Message area */}
       <div style={{ flex: 1, overflowY: "auto", padding: hasMessages ? "24px 0 0" : 0 }}>
         <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px" }}>
@@ -302,7 +321,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
           {/* Empty state + optional intro form */}
           {!hasMessages && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)", textAlign: "center", padding: "0 4px" }}>
-              <Avatar name={displayName} />
+              <Avatar name={displayName} imageUrl={imageUrl} />
               <h1 style={{ margin: 0, fontSize: "clamp(24px, 6vw, 36px)", fontWeight: 700, letterSpacing: "-1px", color: TEXT, fontStyle: "italic" }}>
                 Talk to {displayName}
               </h1>
@@ -390,14 +409,43 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {!introName && (
-                    <input value={contactName} onChange={(e) => setContactName(e.target.value)}
+                    <TextField
+                      size="small"
+                      variant="outlined"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
                       placeholder="Your name (optional)"
-                      style={{ background: "#14141f", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", fontSize: 13, color: TEXT, outline: "none" }} />
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          background: "#14141f",
+                          fontSize: 13,
+                          "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
+                          "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+                          "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
+                        },
+                        "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
+                      }}
+                    />
                   )}
-                  <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)}
+                  <TextField
+                    size="small"
+                    variant="outlined"
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
                     placeholder="Your email *"
                     onKeyDown={(e) => e.key === "Enter" && saveContact()}
-                    style={{ background: "rgba(255,255,255,0.07)", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "8px 12px", fontSize: 13, color: TEXT, outline: "none" }} />
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        background: "#14141f",
+                        fontSize: 13,
+                        "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
+                        "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+                        "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
+                      },
+                      "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
+                    }}
+                  />
                   {contactError && <p style={{ margin: 0, color: "#f87171", fontSize: 12 }}>{contactError}</p>}
                   <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                     <button onClick={saveContact} disabled={contactSaving}
@@ -443,30 +491,52 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                 Enter your details to start the conversation
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div>
-                  <input
-                    autoFocus
-                    value={introName}
-                    onChange={(e) => { setIntroName(e.target.value); if (e.target.value.trim()) setIntroNameError(false) }}
-                    onFocus={() => setIntroFocused("name")}
-                    onBlur={() => setIntroFocused(null)}
-                    placeholder="Your name *"
-                    onKeyDown={(e) => e.key === "Enter" && submitIntro()}
-                    style={{ ...inputStyle(introFocused === "name"), borderColor: introNameError ? "#f87171" : introFocused === "name" ? "rgba(255,255,255,0.3)" : BORDER }}
-                  />
-                  {introNameError && <p style={{ margin: "4px 0 0", fontSize: 12, color: "#f87171" }}>Please enter your name to continue</p>}
-                </div>
-                <input
+                <TextField
+                  autoFocus
+                  size="small"
+                  variant="outlined"
+                  value={introName}
+                  onChange={(e) => { setIntroName(e.target.value); if (e.target.value.trim()) setIntroNameError(false) }}
+                  placeholder="Your name *"
+                  onKeyDown={(e) => e.key === "Enter" && submitIntro()}
+                  error={introNameError}
+                  helperText={introNameError ? "Please enter your name to continue" : undefined}
+                  slotProps={{ formHelperText: { style: { color: "#f87171", margin: "4px 0 0", fontSize: 12 } } }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      background: "#14141f",
+                      fontSize: 13,
+                      "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
+                      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+                      "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
+                  }}
+                />
+                <TextField
+                  size="small"
+                  variant="outlined"
                   type="email"
                   value={introEmail}
-                  onChange={(e) => setIntroEmail(e.target.value)}
-                  onFocus={() => setIntroFocused("email")}
-                  onBlur={() => setIntroFocused(null)}
+                  onChange={(e) => { setIntroEmail(e.target.value); setIntroEmailError(false) }}
                   placeholder="Your email (optional)"
                   onKeyDown={(e) => e.key === "Enter" && submitIntro()}
-                  style={inputStyle(introFocused === "email")}
-                  inputMode="email"
-                  autoComplete="email"
+                  error={introEmailError}
+                  helperText={introEmailError ? "Please enter a valid email address." : undefined}
+                  slotProps={{
+                    htmlInput: { inputMode: "email", autoComplete: "email" },
+                    formHelperText: { style: { color: "#f87171", margin: "4px 0 0", fontSize: 12 } },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      background: "#14141f",
+                      fontSize: 13,
+                      "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
+                      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+                      "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
+                    },
+                    "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
+                  }}
                 />
               </div>
               <button
@@ -478,51 +548,72 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
             </div>
           ) : (
             <>
-              <div style={{
-                display: "flex", alignItems: "flex-end", gap: 12,
-                background: "#14141f",
-                border: `1px solid ${BORDER_STRONG}`,
-                borderRadius: 16,
-                padding: "12px 12px 12px 18px",
-                backdropFilter: "blur(12px)",
-              }}>
-                <textarea
-                  ref={inputRef}
-                  rows={1}
-                  value={inputValue}
-                  onChange={(e) => {
-                    setInputValue(e.target.value)
-                    e.target.style.height = "auto"
-                    e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder={`Ask anything, or paste a job description…`}
-                  style={{
-                    flex: 1, background: "transparent", border: "none", outline: "none",
-                    color: TEXT, fontSize: 14, lineHeight: 1.5, resize: "none",
-                    fontFamily: "inherit", minHeight: 22, maxHeight: 140,
-                  }}
-                />
-<button
-                  onClick={() => submit()}
-                  disabled={status === "streaming" || status === "submitted" || !inputValue.trim()}
-                  style={{
-                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: inputValue.trim() && status !== "streaming" && status !== "submitted" ? "#8b6dff" : "rgba(255,255,255,0.12)",
-                    boxShadow: inputValue.trim() && status !== "streaming" && status !== "submitted" ? "0 0 16px rgba(139,109,255,0.4)" : "none",
-                    border: "none", cursor: inputValue.trim() ? "pointer" : "default",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "background 0.15s",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 19V5M5 12l7-7 7 7" stroke={inputValue.trim() && status !== "streaming" && status !== "submitted" ? "#0a0a0f" : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
+              <TextField
+                inputRef={inputRef}
+                fullWidth
+                autoFocus
+                multiline
+                maxRows={6}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything, or paste a job description…"
+                variant="outlined"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end" sx={{ alignSelf: "center", mr: "6px" }}>
+                        <IconButton
+                          onClick={() => submit()}
+                          disabled={status === "streaming" || status === "submitted" || !inputValue.trim() || inputValue.length > MAX_CHARS}
+                          size="small"
+                          sx={{
+                            width: 36, height: 36, borderRadius: "10px",
+                            background: inputValue.trim() && inputValue.length <= MAX_CHARS && status !== "streaming" && status !== "submitted" ? "#8b6dff" : "rgba(255,255,255,0.08)",
+                            boxShadow: inputValue.trim() && inputValue.length <= MAX_CHARS && status !== "streaming" && status !== "submitted" ? "0 0 16px rgba(139,109,255,0.4)" : "none",
+                            "&:hover": { background: inputValue.trim() && inputValue.length <= MAX_CHARS ? "#7c5ef0" : "rgba(255,255,255,0.08)" },
+                            "&.Mui-disabled": { background: "rgba(255,255,255,0.08)" },
+                            transition: "background 0.15s",
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 19V5M5 12l7-7 7 7" stroke={inputValue.trim() && inputValue.length <= MAX_CHARS && status !== "streaming" && status !== "submitted" ? "#0a0a0f" : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "16px",
+                    background: "#14141f",
+                    fontSize: 14,
+                    color: TEXT,
+                    backdropFilter: "blur(12px)",
+                    alignItems: "center",
+                    "& fieldset": { borderColor: BORDER_STRONG, transition: "border-color 0.15s" },
+                    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                    "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
+                  },
+                  "& .MuiInputBase-input": {
+                    padding: "10px 0 10px 18px",
+                    color: TEXT,
+                    lineHeight: 1.5,
+                    "&::placeholder": { color: MUTED2, opacity: 1 },
+                  },
+                }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, padding: "0 4px" }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>
+                  Enter to send · Shift+Enter for new line
+                </p>
+                {inputValue.length > MAX_CHARS * 0.8 && (
+                  <p style={{ fontSize: 11, margin: 0, color: inputValue.length > MAX_CHARS ? "#f87171" : "rgba(255,255,255,0.3)" }}>
+                    {inputValue.length}/{MAX_CHARS}
+                  </p>
+                )}
               </div>
-              <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 10 }}>
-                Enter to send · Shift+Enter for new line
-              </p>
             </>
           )}
         </div>
