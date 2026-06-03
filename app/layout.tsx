@@ -23,8 +23,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "proxy-me",
-  description: "Your personal AI recruiter agent",
+  title: "Proxy-Me Your AI proxy for recruiters",
+  description: "Set up your profile once, share a link, and let an AI proxy answer recruiter questions on your behalf.",
 };
 
 export default function RootLayout({

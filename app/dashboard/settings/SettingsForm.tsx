@@ -241,7 +241,7 @@ export default function SettingsForm({ user }: Props) {
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {isPublic ? "Twin is active" : "Twin is off"}
+              {isPublic ? "Proxy is active" : "Proxy is off"}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
               {isPublic ? "Anyone with your link can chat with you." : "Your profile is hidden from visitors."}
