@@ -40,9 +40,9 @@ function formatSection(section: Section): string {
     ].filter(Boolean).join("\n")).join("\n\n")
   }
 
-  const c2 = section.content as Record<string, unknown>
-  if (c2.text) return c2.text as string
-  return JSON.stringify(section.content)
+  if (c.text) return c.text as string
+  if (Array.isArray(c.items)) return (c.items as unknown[]).map((i) => JSON.stringify(i)).join("\n")
+  return ""
 }
 
 export function buildSystemPrompt(user: User, sections: Section[], collectContact = false): string {

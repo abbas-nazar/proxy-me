@@ -73,7 +73,8 @@ export async function POST(req: Request) {
       anthropic: { cacheControl: { type: "ephemeral" } },
     },
     onFinish: async ({ text }) => {
-      const withReply = [...plainMessages, { role: "assistant", content: text }]
+      const cleanText = text.replace("[COLLECT_CONTACT]", "").trim()
+      const withReply = [...plainMessages, { role: "assistant", content: cleanText }]
       await db.update(chatSessions)
         .set({ messages: withReply, updatedAt: sql`now()` })
         .where(eq(chatSessions.id, sessionId))

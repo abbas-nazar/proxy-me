@@ -85,6 +85,7 @@ function ConversationRow({ session, defaultOpen }: { session: Session; defaultOp
 export default function ConversationsPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const targetId = typeof window !== "undefined"
     ? window.location.hash.startsWith("#session-")
       ? window.location.hash.replace("#session-", "")
@@ -93,8 +94,9 @@ export default function ConversationsPage() {
 
   useEffect(() => {
     fetch("/api/conversations")
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(); return r.json() })
       .then((data) => setSessions(data.sessions ?? []))
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false))
   }, [])
 
@@ -109,7 +111,15 @@ export default function ConversationsPage() {
         </Typography>
       </Box>
 
-      {!loading && sessions.length === 0 && (
+      {!loading && fetchError && (
+        <Paper variant="outlined" sx={{ borderRadius: 2, borderStyle: "dashed", px: 6, py: 8, textAlign: "center" }}>
+          <Typography variant="body2" sx={{ color: "error.main" }}>
+            Failed to load conversations. Try refreshing the page.
+          </Typography>
+        </Paper>
+      )}
+
+      {!loading && !fetchError && sessions.length === 0 && (
         <Paper
           variant="outlined"
           sx={{ borderRadius: 2, borderStyle: "dashed", px: 6, py: 8, textAlign: "center" }}
@@ -120,7 +130,7 @@ export default function ConversationsPage() {
         </Paper>
       )}
 
-      {!loading && sessions.length > 0 && (
+      {!loading && !fetchError && sessions.length > 0 && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {sessions.map((session) => (
             <ConversationRow key={session.id} session={session} defaultOpen={session.id === targetId} />

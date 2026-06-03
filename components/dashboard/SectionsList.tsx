@@ -66,9 +66,8 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
   const existingTypes = new Set(items.map((s) => s.type))
 
   const grouped = items.reduce<Record<string, Section[]>>((acc, s) => {
-    const key = s.title ?? s.type
-    acc[key] = acc[key] ?? []
-    acc[key].push(s)
+    acc[s.type] = acc[s.type] ?? []
+    acc[s.type].push(s)
     return acc
   }, {})
 
@@ -78,7 +77,7 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
         existingTypes.has(type) ? (
           <div key={type} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{title}</div>
-            {(grouped[title] ?? []).map((section) => (
+            {(grouped[type] ?? []).map((section) => (
               <SectionCard
                 key={section.id + (section.id === newlyCreatedId ? "-new" : "")}
                 section={section}
@@ -97,10 +96,10 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
       )}
 
       {Object.entries(grouped)
-        .filter(([label]) => !CORE_TYPES.some((c) => c.title === label))
-        .map(([label, group]) => (
-          <div key={label} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{label}</div>
+        .filter(([type]) => !CORE_TYPES.some((c) => c.type === type))
+        .map(([, group]) => (
+          <div key={group[0].id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{group[0].title ?? group[0].type}</div>
             {group.map((section) => (
               <SectionCard
                 key={section.id + (section.id === newlyCreatedId ? "-new" : "")}

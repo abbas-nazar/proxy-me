@@ -386,8 +386,8 @@ export default function SettingsForm({ user }: Props) {
       </Section>
 
       {/* Contact Collection */}
-      <Section title="Contact Collection" subtitle="After 5 minutes of inactivity, your twin will naturally ask the visitor for their name and email in the chat. Collected contacts appear on the Conversations page.">
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <Section title="Contact Collection" subtitle="When enabled, visitors are asked for their name and email before they start chatting. Collected contacts appear on the Leads page.">
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {contact.enabled ? "Enabled" : "Disabled"}
           </Typography>
@@ -397,16 +397,34 @@ export default function SettingsForm({ user }: Props) {
             size="small"
           />
         </Box>
-        <Box sx={{ mt: 2 }}>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={saveContact}
-            disabled={savingContact}
-                      >
-            {contactSaved ? "Saved!" : savingContact ? "Saving…" : "Save"}
-          </Button>
-        </Box>
+        {contact.enabled && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2, pl: 0.5 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>Require name</Typography>
+              <Switch
+                checked={contact.requireName}
+                onChange={(e) => setContact((c) => ({ ...c, requireName: e.target.checked }))}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>Require email</Typography>
+              <Switch
+                checked={contact.requireEmail}
+                onChange={(e) => setContact((c) => ({ ...c, requireEmail: e.target.checked }))}
+                size="small"
+              />
+            </Box>
+          </Box>
+        )}
+        <Button
+          variant="contained"
+          size="small"
+          onClick={saveContact}
+          disabled={savingContact}
+        >
+          {contactSaved ? "Saved!" : savingContact ? "Saving…" : "Save"}
+        </Button>
       </Section>
 
       {/* Danger Zone */}

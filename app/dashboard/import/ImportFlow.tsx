@@ -82,11 +82,12 @@ export default function ImportFlow() {
     if (included.has("projects") && profile.projects?.length)
       rows.push({ type: "projects", title: "Projects", content: { items: profile.projects }, source: "cv" })
     try {
-      await fetch("/api/profile/bulk", {
+      const res = await fetch("/api/profile/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows }),
       })
+      if (!res.ok) throw new Error()
       router.push("/dashboard/sections")
     } catch {
       setError("Failed to save. Please try again.")

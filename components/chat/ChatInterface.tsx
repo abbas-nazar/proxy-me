@@ -234,19 +234,24 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   }
 
   function submitIntro() {
-    if (!introName.trim()) { setIntroNameError(true); return }
+    const requireName = contactCollection?.requireName !== false
+    const requireEmail = contactCollection?.requireEmail === true
+
+    if (requireName && !introName.trim()) { setIntroNameError(true); return }
     setIntroNameError(false)
+    if (requireEmail && !introEmail.trim()) { setIntroEmailError(true); return }
     if (introEmail.trim() && !isValidEmail(introEmail.trim())) { setIntroEmailError(true); return }
     setIntroEmailError(false)
+
     const name = introName.trim()
-    if (introEmail.trim()) {
-      setContactEmail(introEmail)
-      setContactName(name)
-      setContactCaptured(true)
+    const email = introEmail.trim()
+    if (name || email) {
+      if (email) { setContactEmail(email); setContactCaptured(true) }
+      if (name) setContactName(name)
       fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, name: name, email: introEmail.trim(), sessionId: null }),
+        body: JSON.stringify({ slug, name: name || null, email: email || null, sessionId: null }),
       }).catch(() => {})
     }
     setIntrosDone(true)
@@ -306,7 +311,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   }
 
   // --- Intro form (shown before first message, skippable) ---
-  const showIntroForm = !introDone && !hasMessages && sessionId
+  const showIntroForm = !introDone && !hasMessages && sessionId && contactCollection?.enabled === true
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: BG, color: TEXT }}>
@@ -479,14 +484,21 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       <div style={{ position: "sticky", bottom: 0, padding: "12px 12px 20px", background: `linear-gradient(to top, ${BG} 80%, transparent)` }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           {showIntroForm ? (
-            /* Intro form — replaces textarea until name is entered */
-            <div style={{
-              background: "#14141f",
-              border: `1px solid ${BORDER}`,
-              borderRadius: 16,
-              padding: "16px 18px",
-              backdropFilter: "blur(12px)",
-            }}>
+            /* Intro form — replaces textarea when contact collection is enabled */
+            (() => {
+              const reqName = contactCollection?.requireName !== false
+              const reqEmail = contactCollection?.requireEmail === true
+              const inputSx = {
+                "& .MuiOutlinedInput-root": {
+                  background: "#14141f", fontSize: 13,
+                  "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+                  "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
+                },
+                "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
+              }
+              return (
+            <div style={{ background: "#14141f", border: `1px solid ${BORDER}`, borderRadius: 16, padding: "16px 18px", backdropFilter: "blur(12px)" }}>
               <p style={{ margin: "0 0 12px", fontSize: 13, color: MUTED }}>
                 Enter your details to start the conversation
               </p>
@@ -497,21 +509,12 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                   variant="outlined"
                   value={introName}
                   onChange={(e) => { setIntroName(e.target.value); if (e.target.value.trim()) setIntroNameError(false) }}
-                  placeholder="Your name *"
+                  placeholder={reqName ? "Your name *" : "Your name (optional)"}
                   onKeyDown={(e) => e.key === "Enter" && submitIntro()}
                   error={introNameError}
                   helperText={introNameError ? "Please enter your name to continue" : undefined}
                   slotProps={{ formHelperText: { style: { color: "#f87171", margin: "4px 0 0", fontSize: 12 } } }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      background: "#14141f",
-                      fontSize: 13,
-                      "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
-                      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
-                      "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
-                    },
-                    "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
-                  }}
+                  sx={inputSx}
                 />
                 <TextField
                   size="small"
@@ -519,24 +522,15 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                   type="email"
                   value={introEmail}
                   onChange={(e) => { setIntroEmail(e.target.value); setIntroEmailError(false) }}
-                  placeholder="Your email (optional)"
+                  placeholder={reqEmail ? "Your email *" : "Your email (optional)"}
                   onKeyDown={(e) => e.key === "Enter" && submitIntro()}
                   error={introEmailError}
-                  helperText={introEmailError ? "Please enter a valid email address." : undefined}
+                  helperText={introEmailError ? reqEmail ? "Email is required." : "Please enter a valid email address." : undefined}
                   slotProps={{
                     htmlInput: { inputMode: "email", autoComplete: "email" },
                     formHelperText: { style: { color: "#f87171", margin: "4px 0 0", fontSize: 12 } },
                   }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      background: "#14141f",
-                      fontSize: 13,
-                      "& fieldset": { borderColor: "rgba(255,255,255,0.09)" },
-                      "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
-                      "&.Mui-focused fieldset": { borderColor: "rgba(139,109,255,0.6)", borderWidth: "1px" },
-                    },
-                    "& .MuiInputBase-input": { color: "#f3f1ee", padding: "8px 12px", "&::placeholder": { color: "#6e6e82", opacity: 1 } },
-                  }}
+                  sx={inputSx}
                 />
               </div>
               <button
@@ -546,6 +540,8 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                 Let's chat
               </button>
             </div>
+              )
+            })()
           ) : (
             <>
               <TextField
