@@ -13,7 +13,7 @@ export default async function SettingsPage() {
           Settings
         </Typography>
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Configure your digital twin.
+          Configure your proxy.
         </Typography>
       </Box>
       <SettingsForm

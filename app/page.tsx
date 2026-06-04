@@ -141,7 +141,7 @@ function HandleField({ size = "md" }: { size?: "md" | "lg" }) {
           boxShadow: "none",
         }}
       >
-        Claim your handle
+        Claim handle
       </Link>
     </div>
   )
@@ -226,7 +226,7 @@ function Nav() {
 
         <div style={{ marginLeft: "auto" }}>
           <Link href="/sign-up" style={ctaButton}>
-            Claim your handle
+            Claim handle
           </Link>
         </div>
       </div>

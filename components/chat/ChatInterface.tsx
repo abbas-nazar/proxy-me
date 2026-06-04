@@ -335,36 +335,35 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
               )}
 
               {!showIntroForm && (
-                <>
-                  <p style={{ margin: "16px auto 0", fontSize: 13, color: MUTED, maxWidth: 440, lineHeight: 1.6 }}>
-                    Ask broad questions, follow up naturally, or paste a job description to check fit.
-                  </p>
-                  {suggestedQuestions.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 28, maxWidth: "100%" }}>
-                      {suggestedQuestions.map((q) => (
-                        <button
-                          key={q}
-                          onClick={() => submit(q)}
-                          style={{
-                            background: "transparent",
-                            border: `1px solid ${BORDER}`,
-                            borderRadius: 100,
-                            padding: "8px 14px",
-                            fontSize: 13,
-                            color: MUTED,
-                            cursor: "pointer",
-                            transition: "all 0.15s",
-                            textAlign: "left",
-                          }}
-                          onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.28)"; (e.target as HTMLButtonElement).style.color = TEXT }}
-                          onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.borderColor = BORDER; (e.target as HTMLButtonElement).style.color = MUTED }}
-                        >
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
+                <p style={{ margin: "16px auto 0", fontSize: 13, color: MUTED, maxWidth: 440, lineHeight: 1.6 }}>
+                  Ask broad questions, follow up naturally, or paste a job description to check fit.
+                </p>
+              )}
+
+              {suggestedQuestions.length > 0 && !showIntroForm && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 28, maxWidth: "100%" }}>
+                  {suggestedQuestions.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => submit(q)}
+                      style={{
+                        background: "transparent",
+                        border: `1px solid ${BORDER}`,
+                        borderRadius: 100,
+                        padding: "8px 14px",
+                        fontSize: 13,
+                        color: MUTED,
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        textAlign: "left",
+                      }}
+                      onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.28)"; (e.target as HTMLButtonElement).style.color = TEXT }}
+                      onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.borderColor = BORDER; (e.target as HTMLButtonElement).style.color = MUTED }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           )}
