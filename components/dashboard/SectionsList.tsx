@@ -95,20 +95,18 @@ export default function SectionsList({ sections }: { sections: Section[] }) {
         )
       )}
 
-      {Object.entries(grouped)
-        .filter(([type]) => !CORE_TYPES.some((c) => c.type === type))
-        .map(([, group]) => (
-          <div key={group[0].id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{group[0].title ?? group[0].type}</div>
-            {group.map((section) => (
-              <SectionCard
-                key={section.id + (section.id === newlyCreatedId ? "-new" : "")}
-                section={section}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-                initialEditing={section.id === newlyCreatedId}
-              />
-            ))}
+      {items
+        .filter((s) => !CORE_TYPES.some((c) => c.type === s.type))
+        .map((section) => (
+          <div key={section.id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6e6e82", textTransform: "uppercase" }}>{section.title ?? section.type}</div>
+            <SectionCard
+              key={section.id + (section.id === newlyCreatedId ? "-new" : "")}
+              section={section}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
+              initialEditing={section.id === newlyCreatedId}
+            />
           </div>
         ))}
 
