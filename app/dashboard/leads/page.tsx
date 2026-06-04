@@ -1,7 +1,7 @@
 import { getOrRedirectUser } from "@/app/actions/onboarding"
 import { db } from "@/lib/db"
 import { visitorContacts } from "@/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { eq, desc, isNotNull, and } from "drizzle-orm"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Paper from "@mui/material/Paper"
@@ -17,7 +17,7 @@ export default async function LeadsPage() {
   const contacts = await db
     .select()
     .from(visitorContacts)
-    .where(eq(visitorContacts.userId, user.id))
+    .where(and(eq(visitorContacts.userId, user.id), isNotNull(visitorContacts.sessionId)))
     .orderBy(desc(visitorContacts.createdAt))
 
   return (
