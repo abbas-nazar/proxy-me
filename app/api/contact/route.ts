@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { users, visitorContacts } from "@/db/schema"
+import { users, visitorContacts, chatSessions } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 import { rateLimit } from "@/lib/rateLimit"
 
@@ -23,6 +23,13 @@ export async function POST(req: Request) {
   const [user] = await db.select().from(users).where(eq(users.slug, slug))
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
+  // Only use sessionId if the session actually exists — avoids FK violation
+  let validSessionId: string | null = null
+  if (sessionId) {
+    const [session] = await db.select({ id: chatSessions.id }).from(chatSessions).where(eq(chatSessions.id, sessionId))
+    if (session) validSessionId = sessionId
+  }
+
   // Deduplicate by email if provided — update name/sessionId instead of inserting a duplicate
   if (trimmedEmail) {
     const [existing] = await db
@@ -34,7 +41,7 @@ export async function POST(req: Request) {
       await db.update(visitorContacts)
         .set({
           name: trimmedName ?? existing.name,
-          sessionId: sessionId || existing.sessionId,
+          sessionId: validSessionId ?? existing.sessionId,
         })
         .where(eq(visitorContacts.id, existing.id))
       return NextResponse.json({ ok: true })
@@ -43,7 +50,7 @@ export async function POST(req: Request) {
 
   await db.insert(visitorContacts).values({
     userId: user.id,
-    sessionId: sessionId || null,
+    sessionId: validSessionId,
     name: trimmedName,
     email: trimmedEmail,
   })

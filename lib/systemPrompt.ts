@@ -45,7 +45,7 @@ function formatSection(section: Section): string {
   return ""
 }
 
-export function buildSystemPrompt(user: User, sections: Section[], collectContact = false): string {
+export function buildSystemPrompt(user: User, sections: Section[], collectContact = false, visitorName?: string | null, visitorEmail?: string | null): string {
   const grouped = sections.reduce<Record<string, Section[]>>((acc, s) => {
     acc[s.type] = acc[s.type] ?? []
     acc[s.type].push(s)
@@ -89,7 +89,10 @@ If asked about something not in the profile, say so naturally: "Honestly not som
 
 ## Job description matching
 If someone pastes a JD, react like a person reading it, not a system scoring it. Say what genuinely fits and what doesn't. Be honest about gaps without over-explaining them. No scores, no bullet breakdowns, no "overall I'd rate this". Just talk through it like you would with a friend who sent you the role.
-${collectContact ? `
+${visitorName || visitorEmail ? `
+## Visitor info
+${visitorName ? `Their name is ${visitorName}.` : ""}${visitorEmail ? ` You already have their email: ${visitorEmail}. If they ask to save their email or stay in touch, tell them you already have it.` : " You do not have their email yet."}` : ""}
+${collectContact && !visitorEmail ? `
 ## Following up
-Only when the conversation is clearly winding down and it feels natural, mention staying in touch. Something like "Want to leave your email in case there's a fit?" Casual, not pushy. If they say yes or share details, end with [COLLECT_CONTACT]. Only do this once.` : ""}`
+When the conversation is winding down, or if the visitor asks to save their contact or stay in touch, respond with one short sentence then end your message with [COLLECT_CONTACT] on its own line. Example: "Want to stay in touch in case there's a fit?\n[COLLECT_CONTACT]". The token triggers a form — never ask them to type their email in chat. Never say "drop it below" or "share it here". Just end with [COLLECT_CONTACT]. Do this once only.` : ""}`
 }

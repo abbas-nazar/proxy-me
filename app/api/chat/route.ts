@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 })
   }
 
-  const { messages, slug, sessionId } = await req.json()
+  const { messages, slug, sessionId, visitorName: clientVisitorName, visitorEmail: clientVisitorEmail } = await req.json()
 
   const lastMessage = messages?.[messages.length - 1]
   const lastText = lastMessage?.parts?.filter((p: { type: string }) => p.type === "text").map((p: { text: string }) => p.text).join("") ?? ""
@@ -37,7 +37,19 @@ export async function POST(req: Request) {
     .where(eq(profileSections.userId, user.id))
 
   const contactCollection = user.contactCollection as { enabled: boolean } | null
-  const system = buildSystemPrompt(user, sections, contactCollection?.enabled === true)
+
+  // Look up visitor contact by sessionId to tell the AI if we already have their info
+  const [visitorContact] = sessionId
+    ? await db.select({ name: visitorContacts.name, email: visitorContacts.email })
+        .from(visitorContacts)
+        .where(eq(visitorContacts.sessionId, sessionId))
+    : [undefined]
+
+  // Client-side state is more up-to-date than DB (contact may not be linked yet)
+  const resolvedName = visitorContact?.name ?? clientVisitorName ?? null
+  const resolvedEmail = visitorContact?.email ?? clientVisitorEmail ?? null
+
+  const system = buildSystemPrompt(user, sections, contactCollection?.enabled === true, resolvedName, resolvedEmail)
   const modelMessages = await convertToModelMessages(messages)
 
   // Save incoming messages immediately (creates session row if first message)

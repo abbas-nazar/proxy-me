@@ -37,6 +37,8 @@ type SavedSession = {
   sessionId: string
   name: string
   email: string
+  introDone: boolean
+  contactCaptured: boolean
   messages: { role: string; content: string }[]
   savedAt: number
 }
@@ -113,11 +115,20 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
         const expired = Date.now() - (saved.savedAt ?? 0) > sevenDays
         if (expired) {
           localStorage.removeItem(LS_SESSION(slug))
-        } else if (saved.sessionId && saved.messages?.length > 0) {
-          setResumeSession(saved)
+        } else if (saved.sessionId) {
           if (saved.name) setIntroName(saved.name)
-          if (saved.email) setIntroEmail(saved.email)
-          return
+          if (saved.email) { setIntroEmail(saved.email); setContactEmail(saved.email) }
+          if (saved.email) setContactCaptured(true)
+          if (saved.messages?.length > 0) {
+            // Returning user with messages — restore full state
+            if (saved.introDone) setIntrosDone(true)
+            setResumeSession(saved)
+            return
+          }
+          // No messages yet — restore session ID but don't skip the intro form
+          // unless they already provided their email (contact captured)
+          if (saved.email) setIntrosDone(true)
+          setSessionId(saved.sessionId)
         }
       } catch { /* ignore */ }
     }
@@ -139,8 +150,25 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     setIntrosDone(true)
   }
 
+  const introNameRef = useRef(introName)
+  const introEmailRef = useRef(introEmail)
+  const contactNameRef = useRef(contactName)
+  const contactEmailRef = useRef(contactEmail)
+  useEffect(() => { introNameRef.current = introName }, [introName])
+  useEffect(() => { introEmailRef.current = introEmail }, [introEmail])
+  useEffect(() => { contactNameRef.current = contactName }, [contactName])
+  useEffect(() => { contactEmailRef.current = contactEmail }, [contactEmail])
+
   const { messages, sendMessage, status, error, setMessages } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat", body: { slug, sessionId } }),
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      body: {
+        slug,
+        sessionId,
+        get visitorName() { return contactNameRef.current || introNameRef.current || null },
+        get visitorEmail() { return contactEmailRef.current || introEmailRef.current || null },
+      },
+    }),
   })
 
 
@@ -185,13 +213,17 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
 
   useEffect(() => () => { if (inactivityTimer.current) clearTimeout(inactivityTimer.current) }, [])
 
-  // Persist session to localStorage whenever messages change
+  // Persist session to localStorage whenever relevant state changes
   useEffect(() => {
-    if (!sessionId || messages.length === 0) return
+    if (!sessionId) return
+    // Only persist if there's something worth saving
+    if (!introDone && messages.length === 0) return
     const saved: SavedSession = {
       sessionId,
       name: introName,
       email: introEmail,
+      introDone,
+      contactCaptured,
       messages: messages.map((m) => ({
         role: m.role,
         content: m.parts?.filter((p) => p.type === "text").map((p) => p.text).join("") ?? "",
@@ -199,14 +231,15 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       savedAt: Date.now(),
     }
     localStorage.setItem(LS_SESSION(slug), JSON.stringify(saved))
-  }, [messages, sessionId, introName, introEmail, slug])
+  }, [messages, sessionId, introName, introEmail, introDone, contactCaptured, slug])
 
   function isValidEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
   async function saveContact() {
-    const emailToUse = contactEmail.trim() || introEmail.trim()
+    if (!showContactPrompt) return
+    const emailToUse = contactEmail.trim()
     if (!emailToUse) { setContactError("Email is required."); return }
     if (!isValidEmail(emailToUse)) { setContactError("Please enter a valid email address."); return }
     setContactSaving(true)
@@ -320,12 +353,12 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       <ChatHeader displayName={displayName} headline={headline} imageUrl={imageUrl} style={{ background: "#0e0e16", padding: "12px 20px" }} />
 
       {/* Message area */}
-      <div style={{ flex: 1, overflowY: "auto", padding: hasMessages ? "24px 0 0" : 0 }}>
-        <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px" }}>
+      <div style={{ flex: 1, overflowY: hasMessages ? "auto" : "hidden", padding: hasMessages ? "24px 0 0" : 0, display: "flex", flexDirection: "column" }}>
+        <div style={{ maxWidth: 720, width: "100%", margin: "0 auto", padding: "0 20px", flex: 1, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
 
           {/* Empty state + optional intro form */}
           {!hasMessages && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100vh - 180px)", textAlign: "center", padding: "0 4px" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 4px" }}>
               <Avatar name={displayName} imageUrl={imageUrl} />
               <h1 style={{ margin: 0, fontSize: "clamp(24px, 6vw, 36px)", fontWeight: 700, letterSpacing: "-1px", color: TEXT, fontStyle: "italic" }}>
                 Talk to {displayName}
@@ -405,7 +438,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
           )}
 
           {/* Contact prompt — only shown if email not already provided in intro */}
-          {showContactPrompt && !contactCaptured && (
+          {showContactPrompt && !contactCaptured && !contactDone && (
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
               <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: "18px 18px 18px 4px", padding: "14px 18px", maxWidth: "78%" }}>
                 <p style={{ margin: "0 0 12px", fontSize: 13, color: TEXT }}>
@@ -466,16 +499,8 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
             </div>
           )}
 
-          {/* Thank you */}
-          {contactDone && (
-            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
-              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: "18px 18px 18px 4px", padding: "10px 16px", fontSize: 14, color: TEXT }}>
-                Thanks for sharing your details. We'll be in touch!
-              </div>
-            </div>
-          )}
 
-          <div ref={bottomRef} style={{ height: 120 }} />
+          <div ref={bottomRef} style={{ height: hasMessages ? 120 : 0 }} />
         </div>
       </div>
 

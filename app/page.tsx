@@ -92,57 +92,62 @@ const ghostButton: React.CSSProperties = {
 function HandleField({ size = "md" }: { size?: "md" | "lg" }) {
   const isLg = size === "lg"
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        background: surface,
-        border: `1px solid ${borderStrong}`,
-        borderRadius: 14,
-        overflow: "hidden",
-        maxWidth: isLg ? 520 : 460,
-        width: "100%",
-      }}
-    >
-      <span
+    <div className="handle-field" style={{ maxWidth: isLg ? 520 : 460, width: "100%" }}>
+      {/* Horizontal layout (desktop) */}
+      <div
+        className="handle-field-row"
         style={{
-          padding: isLg ? "14px 14px 14px 18px" : "12px 10px 12px 16px",
-          fontFamily: "var(--font-jetbrains-mono, monospace)",
-          fontSize: isLg ? 14 : 13,
-          color: muted2,
-          whiteSpace: "nowrap",
-          flexShrink: 0,
-          borderRight: `1px solid ${border}`,
+          display: "flex",
+          alignItems: "center",
+          background: surface,
+          border: `1px solid ${borderStrong}`,
+          borderRadius: 14,
+          overflow: "hidden",
+          width: "100%",
         }}
       >
-        {BASE_URL.replace(/^https?:\/\//, "")}/
-      </span>
-      <input
-        type="text"
-        placeholder="yourname"
-        style={{
-          flex: 1,
-          background: "transparent",
-          border: "none",
-          outline: "none",
-          color: text,
-          fontSize: isLg ? 14 : 13,
-          fontFamily: "var(--font-hanken-grotesk, system-ui, sans-serif)",
-          padding: isLg ? "14px 12px" : "12px 10px",
-        }}
-      />
-      <Link
-        href="/sign-up"
-        style={{
-          ...ctaButton,
-          borderRadius: "0 12px 12px 0",
-          fontSize: isLg ? 14 : 13,
-          padding: isLg ? "14px 22px" : "12px 18px",
-          boxShadow: "none",
-        }}
-      >
-        Claim handle
-      </Link>
+        <span
+          style={{
+            padding: isLg ? "14px 14px 14px 18px" : "12px 10px 12px 16px",
+            fontFamily: "var(--font-jetbrains-mono, monospace)",
+            fontSize: isLg ? 14 : 13,
+            color: muted2,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+            borderRight: `1px solid ${border}`,
+          }}
+        >
+          {BASE_URL.replace(/^https?:\/\//, "")}/
+        </span>
+        <input
+          type="text"
+          placeholder="yourname"
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            color: text,
+            fontSize: isLg ? 14 : 13,
+            fontFamily: "var(--font-hanken-grotesk, system-ui, sans-serif)",
+            padding: isLg ? "14px 12px" : "12px 10px",
+            minWidth: 0,
+          }}
+        />
+        <Link
+          href="/sign-up"
+          className="handle-field-btn"
+          style={{
+            ...ctaButton,
+            borderRadius: "0 12px 12px 0",
+            fontSize: isLg ? 14 : 13,
+            padding: isLg ? "14px 22px" : "12px 18px",
+            boxShadow: "none",
+          }}
+        >
+          Claim handle
+        </Link>
+      </div>
     </div>
   )
 }
@@ -932,6 +937,25 @@ export default async function Home() {
           }
           .nav-links-desktop {
             display: none !important;
+          }
+        }
+        @media (max-width: 540px) {
+          .handle-field {
+            max-width: 100% !important;
+          }
+          .handle-field-row {
+            flex-wrap: wrap !important;
+            border-radius: 14px 14px 0 0 !important;
+          }
+          .handle-field-row input {
+            min-width: 80px !important;
+          }
+          .handle-field-btn {
+            width: 100% !important;
+            border-radius: 0 0 14px 14px !important;
+            justify-content: center;
+            padding: 13px 20px !important;
+            border-top: 1px solid rgba(255,255,255,0.09) !important;
           }
         }
         @media (max-width: 640px) {
