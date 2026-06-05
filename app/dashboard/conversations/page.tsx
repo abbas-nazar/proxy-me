@@ -14,11 +14,14 @@ import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutline
 
 type Message = { role: "user" | "assistant"; content: string }
 
+type Contact = { name: string | null; email: string | null }
+
 type Session = {
   id: string
   messages: Message[]
   createdAt: string | null
   updatedAt: string | null
+  contact: Contact | null
 }
 
 function ConversationRow({ session, defaultOpen }: { session: Session; defaultOpen?: boolean }) {
@@ -30,6 +33,10 @@ function ConversationRow({ session, defaultOpen }: { session: Session; defaultOp
   const date = session.updatedAt
     ? new Date(session.updatedAt).toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })
     : ""
+  const contact = session.contact
+  const contactLabel = contact?.name && contact?.email
+    ? `${contact.name} · ${contact.email}`
+    : contact?.name ?? contact?.email ?? null
 
   useEffect(() => {
     if (defaultOpen && rowRef.current) {
@@ -56,6 +63,14 @@ function ConversationRow({ session, defaultOpen }: { session: Session; defaultOp
           >
             {firstUserMsg?.content ?? "Empty conversation"}
           </Typography>
+          {contactLabel && (
+            <Typography
+              variant="caption"
+              sx={{ color: "text.secondary", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}
+            >
+              {contactLabel}
+            </Typography>
+          )}
         </Box>
         <Chip
           label={`${msgCount} msg${msgCount !== 1 ? "s" : ""}`}
