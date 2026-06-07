@@ -1,2 +1,0 @@
-ALTER TABLE "visitor_contacts" ADD COLUMN "session_id" uuid;--> statement-breakpoint
-ALTER TABLE "visitor_contacts" ADD CONSTRAINT "visitor_contacts_session_id_chat_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."chat_sessions"("id") ON DELETE set null ON UPDATE no action;

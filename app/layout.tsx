@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemeRegistry from "@/components/ThemeRegistry";
 import "./globals.css";
 
@@ -40,6 +42,8 @@ export default function RootLayout({
       >
         <body className="min-h-full flex flex-col">
           <ThemeRegistry>{children}</ThemeRegistry>
+          <Analytics />
+          <SpeedInsights />
         </body>
       </html>
     </ClerkProvider>

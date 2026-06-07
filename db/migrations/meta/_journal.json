@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1778784759184,
-      "tag": "0000_tough_gorgon",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1779478005290,
-      "tag": "0001_tricky_legion",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1779734859593,
-      "tag": "0002_jazzy_triathlon",
+      "when": 1749340000000,
+      "tag": "0000_init",
       "breakpoints": true
     }
   ]
