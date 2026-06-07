@@ -266,7 +266,7 @@ export default function SectionCard({ section, onDelete, onUpdate, initialEditin
       <Dialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        PaperProps={{ sx: { minWidth: 360, borderRadius: 3, p: 1 } }}
+        slotProps={{ paper: { sx: { minWidth: 360, borderRadius: 3, p: 1 } } }}
       >
         <DialogTitle sx={{ fontWeight: 700, fontSize: 17, pb: 0.5 }}>Delete section?</DialogTitle>
         <DialogContent>

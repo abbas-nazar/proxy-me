@@ -1,8 +1,5 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import { db } from "@/lib/db"
-import { users } from "@/db/schema"
-import { eq } from "drizzle-orm"
 import Link from "next/link"
 import ChatDemoClient from "@/components/landing/ChatDemoClient"
 import { BASE_URL } from "@/lib/baseUrl"
@@ -916,11 +913,7 @@ function Footer() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function Home() {
   const { userId } = await auth()
-
-  if (userId) {
-    const [user] = await db.select().from(users).where(eq(users.clerkId, userId))
-    redirect(user ? "/dashboard" : "/onboarding")
-  }
+  if (userId) redirect("/dashboard")
 
   return (
     <>

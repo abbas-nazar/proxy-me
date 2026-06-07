@@ -8,7 +8,6 @@ import Typography from "@mui/material/Typography"
 import TextField from "@mui/material/TextField"
 import Button from "@mui/material/Button"
 import Paper from "@mui/material/Paper"
-import CircularProgress from "@mui/material/CircularProgress"
 import InputAdornment from "@mui/material/InputAdornment"
 import type { ParsedProfile } from "@/lib/parser"
 
@@ -127,9 +126,61 @@ export default function OnboardingFlow() {
 
   if (step === "parsing") {
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 2 }}>
-        <CircularProgress size={28} sx={{ color: "#8b6dff" }} />
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>Extracting your profile…</Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", py: 10, gap: 3 }}>
+        <style>{`
+          @keyframes scan {
+            0% { top: 0%; opacity: 1; }
+            80% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+          }
+          @keyframes lineFade {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.5; }
+          }
+          @keyframes pulse-doc {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+          }
+        `}</style>
+
+        <Box sx={{ position: "relative", width: 80, height: 100, animation: "pulse-doc 2s ease-in-out infinite" }}>
+          {/* Document body */}
+          <Box sx={{
+            position: "absolute", inset: 0,
+            bgcolor: "#1a1a2e", border: "1.5px solid rgba(139,109,255,0.4)",
+            borderRadius: "6px 6px 4px 4px",
+            overflow: "hidden",
+          }}>
+            {/* Folded corner */}
+            <Box sx={{
+              position: "absolute", top: 0, right: 0,
+              width: 18, height: 18,
+              background: "linear-gradient(225deg, #0a0a0f 50%, rgba(139,109,255,0.3) 50%)",
+            }} />
+            {/* Text lines */}
+            {[20, 34, 48, 62, 76].map((top, i) => (
+              <Box key={i} sx={{
+                position: "absolute", left: 10, right: i === 0 ? 22 : 10,
+                top, height: 5, borderRadius: 2,
+                bgcolor: "rgba(255,255,255,0.08)",
+                animation: `lineFade ${1.2 + i * 0.2}s ease-in-out infinite`,
+                animationDelay: `${i * 0.15}s`,
+              }} />
+            ))}
+            {/* Scan line */}
+            <Box sx={{
+              position: "absolute", left: 0, right: 0, height: 2,
+              background: "linear-gradient(90deg, transparent, #8b6dff, transparent)",
+              animation: "scan 1.8s ease-in-out infinite",
+              boxShadow: "0 0 8px rgba(139,109,255,0.8)",
+            }} />
+          </Box>
+        </Box>
+
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>Extracting your profile…</Typography>
+          <Typography variant="caption" sx={{ color: "text.disabled" }}>This takes about 10 seconds</Typography>
+        </Box>
       </Box>
     )
   }
