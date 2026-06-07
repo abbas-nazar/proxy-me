@@ -14,38 +14,38 @@ type Message = {
 const MESSAGES: Message[] = [
   {
     role: "recruiter",
-    text: "Hey! I'm Jamie from Meridian, we're a fintech building payments infra. I came across Sarah's profile and wanted to reach out. Is she open to hearing about new roles?",
+    text: "Hi! I'm Alex from Stripe. I came across your profile and wanted to reach out, are you open to hearing about senior frontend roles?",
   },
   {
     role: "proxy",
-    text: "Hey Jamie! Yeah, I'm open, been keeping an eye out for the right thing. Payments infra sounds interesting, what stage is Meridian at?",
+    text: "Hey Alex! Yeah, I'm open to the right thing. Stripe's always been on my radar. What's the role focused on?",
     thinkMs: 1200,
   },
   {
     role: "recruiter",
-    text: "Series B, about 80 people. We're looking for someone to lead the ledger and settlement side. Mostly Go and Postgres. Does that match what Sarah's been working on?",
+    text: "We're building out the dashboard experience. React, TypeScript, performance-heavy work. You've been in that space?",
   },
   {
     role: "proxy",
-    text: "That's pretty much my wheelhouse honestly. I've been building ledger services in Go for the past couple years, at one point we were handling around 4M transactions a day. Settlement flows, reconciliation, the whole thing.",
+    text: "That's pretty much what I've been doing. Lots of React and TypeScript, heavy focus on performance. Things like virtualized lists, bundle optimization, reducing LCP. It's work I genuinely enjoy.",
     thinkMs: 1500,
   },
   {
     role: "recruiter",
-    text: "That's exactly what we need. Is she open to a lead role, or is she more heads-down IC right now?",
+    text: "Nice. Are you looking for IC or would you consider a tech lead kind of role?",
   },
   {
     role: "proxy",
-    text: "I'd be into a lead role if the scope is right. I've been doing a bit of both lately and I actually enjoy the mix. What does the team look like on that side?",
+    text: "I'm open to both honestly. I've been doing a mix lately, hands-on coding but also mentoring and some architecture decisions. I don't want to fully move away from the code.",
     thinkMs: 1100,
   },
   {
     role: "recruiter",
-    text: "Small but growing. 3 engineers right now, you'd be the 4th and effectively leading the workstream. Want to jump on a quick call this week?",
+    text: "That's exactly the kind of profile we're after. Want to jump on a quick call this week?",
   },
   {
     role: "proxy",
-    text: "Yeah, I'm up for that. Leave your email and I'll make sure Sarah gets this, she'll follow up directly.",
+    text: "Sure, happy to. Drop your email and I'll follow up to find a time.",
     thinkMs: 900,
   },
 ]
@@ -169,7 +169,7 @@ export default function ChatDemo() {
       `}</style>
       <div style={styles.card}>
         {/* Header */}
-        <ChatHeader displayName="Sarah Chen" handle={`${BASE_URL.replace(/^https?:\/\//, "")}/sarahchen`} />
+        <ChatHeader displayName="Alex Rivera" handle={`${BASE_URL.replace(/^https?:\/\//, "")}/alexrivera`} />
 
         {/* Messages */}
         <div style={styles.messagesArea} ref={containerRef}>

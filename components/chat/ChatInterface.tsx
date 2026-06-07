@@ -625,7 +625,8 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
                 }}
               />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, padding: "0 4px" }}>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>
+                <style>{`@media(max-width:640px){.kb-hint{display:none!important}}`}</style>
+                <p className="kb-hint" style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", margin: 0 }}>
                   Enter to send · Shift+Enter for new line
                 </p>
                 {inputValue.length > MAX_CHARS * 0.8 && (
