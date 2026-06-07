@@ -14,11 +14,11 @@ type Message = {
 const MESSAGES: Message[] = [
   {
     role: "recruiter",
-    text: "Hi! I'm Alex from Stripe. I came across your profile and wanted to reach out, are you open to hearing about senior frontend roles?",
+    text: "Hi! I'm Jamie from Stripe. I came across your profile and wanted to reach out, are you open to hearing about senior frontend roles?",
   },
   {
     role: "proxy",
-    text: "Hey Alex! Yeah, I'm open to the right thing. Stripe's always been on my radar. What's the role focused on?",
+    text: "Hey Jamie! Yeah, I'm open to the right thing. Stripe's always been on my radar. What's the role focused on?",
     thinkMs: 1200,
   },
   {
