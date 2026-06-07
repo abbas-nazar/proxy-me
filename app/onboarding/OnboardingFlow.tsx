@@ -138,9 +138,9 @@ export default function OnboardingFlow() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <Box>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>Import your CV</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>Upload your background</Typography>
         <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-          Upload a PDF to automatically extract your profile. You can also skip and add sections manually.
+          Upload a PDF, your CV or a LinkedIn export to automatically extract your profile. You can also skip and add sections manually.
         </Typography>
       </Box>
 
@@ -158,7 +158,7 @@ export default function OnboardingFlow() {
         </Typography>
         {!fileName && (
           <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mt: 0.5 }}>
-            PDF only
+            CV or LinkedIn export · PDF only
           </Typography>
         )}
         <input
@@ -179,7 +179,7 @@ export default function OnboardingFlow() {
           disabled={!fileName}
           sx={{ bgcolor: "#8b6dff", color: "#0a0a0f", "&:hover": { bgcolor: "#7c5ef0" }, borderRadius: 2, py: 1.2 }}
         >
-          Import CV
+          Extract profile
         </Button>
         <Button variant="text" onClick={() => router.push("/dashboard/sections")} sx={{ color: "text.secondary" }}>
           Skip, add manually

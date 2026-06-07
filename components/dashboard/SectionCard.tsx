@@ -9,6 +9,11 @@ import Typography from "@mui/material/Typography"
 import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
 import TextField from "@mui/material/TextField"
+import Dialog from "@mui/material/Dialog"
+import DialogTitle from "@mui/material/DialogTitle"
+import DialogContent from "@mui/material/DialogContent"
+import DialogContentText from "@mui/material/DialogContentText"
+import DialogActions from "@mui/material/DialogActions"
 import {
   BioEditor, SkillsEditor, ExperienceEditor,
   EducationEditor, ProjectsEditor, CustomEditor,
@@ -154,6 +159,7 @@ export default function SectionCard({ section, onDelete, onUpdate, initialEditin
   const [editedContent, setEditedContent] = useState<unknown>(section.content)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [error, setError] = useState("")
 
   const updatedAt = section.updatedAt
@@ -188,8 +194,8 @@ export default function SectionCard({ section, onDelete, onUpdate, initialEditin
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this section?")) return
     setDeleting(true)
+    setConfirmOpen(false)
     try {
       const res = await fetch(`/api/profile/${section.id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
@@ -249,13 +255,43 @@ export default function SectionCard({ section, onDelete, onUpdate, initialEditin
               sx={{ fontSize: 12, borderColor: "rgba(255,255,255,0.09)", color: "text.primary", "&:hover": { borderColor: "rgba(255,255,255,0.16)" } }}>
               Edit
             </Button>
-            <Button size="small" variant="outlined" onClick={handleDelete} disabled={deleting}
+            <Button size="small" variant="outlined" onClick={() => setConfirmOpen(true)} disabled={deleting}
               sx={{ fontSize: 12, borderColor: "rgba(255,255,255,0.09)", color: "error.main", "&:hover": { borderColor: "error.main" } }}>
               {deleting ? "…" : "Delete"}
             </Button>
           </>
         )}
       </Box>
+
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        PaperProps={{ sx: { minWidth: 360, borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: 17, pb: 0.5 }}>Delete section?</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ fontSize: 14 }}>This action can&apos;t be undone.</DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={() => setConfirmOpen(false)}
+            variant="outlined"
+            size="small"
+            sx={{ borderRadius: 2, textTransform: "none", fontSize: 13, px: 2.5 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            color="error"
+            size="small"
+            sx={{ borderRadius: 2, textTransform: "none", fontSize: 13, px: 2.5 }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   )
 }

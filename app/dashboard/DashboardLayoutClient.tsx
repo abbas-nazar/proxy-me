@@ -55,7 +55,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     groupLabel: "MANAGE",
     items: [
-      { label: "Import CV", href: "/dashboard/import", icon: <FileUploadIcon fontSize="small" /> },
       { label: "Settings", href: "/dashboard/settings", icon: <SettingsIcon fontSize="small" /> },
     ],
   },
