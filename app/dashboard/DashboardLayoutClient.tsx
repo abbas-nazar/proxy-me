@@ -22,6 +22,7 @@ import FileUploadIcon from "@mui/icons-material/FileUpload"
 import PeopleIcon from "@mui/icons-material/People"
 import OpenInNewIcon from "@mui/icons-material/OpenInNew"
 import MenuIcon from "@mui/icons-material/Menu"
+import Image from "next/image"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import CloseIcon from "@mui/icons-material/Close"
 
@@ -294,14 +295,19 @@ export default function DashboardLayout({ children, slug }: { children: React.Re
             minHeight: 52,
           }}
         >
-          {!collapsed && (
-            <Link href="/dashboard" style={{ textDecoration: "none", color: "#f3f1ee" }}>
+          {collapsed ? (
+            <Link href="/dashboard" style={{ display: "flex" }}>
+              <Image src="/logo.png" alt="Proxy-Me" width={28} height={28} style={{ borderRadius: 6 }} />
+            </Link>
+          ) : (
+            <Link href="/dashboard" style={{ textDecoration: "none", color: "#f3f1ee", display: "flex", alignItems: "center", gap: 8 }}>
+              <Image src="/logo.png" alt="Proxy-Me" width={26} height={26} style={{ borderRadius: 6 }} />
               <Box component="span" sx={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px", fontFamily: "var(--font-space-grotesk)" }}>
                 Proxy<span style={{ color: "#8b6dff" }}>-</span>Me
               </Box>
             </Link>
           )}
-          <IconButton size="small" onClick={() => setCollapsed((v) => !v)}>
+          <IconButton size="small" onClick={() => setCollapsed((v) => !v)} sx={{ ml: collapsed ? 0 : "auto" }}>
             {collapsed ? <MenuIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
           </IconButton>
         </Box>

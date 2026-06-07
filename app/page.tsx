@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import ChatDemoClient from "@/components/landing/ChatDemoClient"
 import { BASE_URL } from "@/lib/baseUrl"
 
@@ -174,16 +175,7 @@ function Nav() {
       >
         {/* Brand mark */}
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 6,
-              background: `linear-gradient(135deg, #8b6dff 0%, #6040e0 100%)`,
-              boxShadow: `0 0 10px rgba(139,109,255,0.5)`,
-              flexShrink: 0,
-            }}
-          />
+          <Image src="/logo.png" alt="Proxy-Me" width={28} height={28} style={{ borderRadius: 7, flexShrink: 0 }} />
           <span
             style={{
               fontFamily: "var(--font-space-grotesk, system-ui, sans-serif)",
@@ -333,6 +325,97 @@ const STEPS = [
   },
 ]
 
+const baseDomain = BASE_URL.replace(/^https?:\/\//, "")
+
+function HandleAnim() {
+  return (
+    <div style={{ marginBottom: 20, height: 56 }}>
+      <style>{`
+        @keyframes url-type {
+          0%  { width: 0 }
+          60% { width: 120px }
+          80% { width: 120px }
+          100%{ width: 0 }
+        }
+        @keyframes cursor-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+      `}</style>
+      <div style={{ display: "inline-flex", alignItems: "center", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(139,109,255,0.3)", borderRadius: 8, padding: "8px 12px", fontFamily: "var(--font-jetbrains-mono, monospace)", fontSize: 13, color: "#9a9aae", whiteSpace: "nowrap", overflow: "hidden" }}>
+        <span style={{ color: "rgba(139,109,255,0.6)" }}>{baseDomain}/</span>
+        <span style={{ display: "inline-block", overflow: "hidden", width: 0, animation: "url-type 3s ease-in-out infinite", color: "#f3f1ee" }}>yourname</span>
+        <span style={{ animation: "cursor-blink 0.8s step-end infinite", color: "#8b6dff", fontWeight: 700 }}>|</span>
+      </div>
+    </div>
+  )
+}
+
+function DocAnim() {
+  return (
+    <div style={{ marginBottom: 20, height: 56, display: "flex", alignItems: "center", gap: 10 }}>
+      <style>{`
+        @keyframes doc-scan2 { 0%{top:2px;opacity:1} 85%{opacity:1} 100%{top:52px;opacity:0} }
+        @keyframes doc-line2 { 0%,100%{opacity:.1} 50%{opacity:.5} }
+        @keyframes arrow-move { 0%,100%{transform:translateX(0);opacity:.4} 50%{transform:translateX(6px);opacity:1} }
+        @keyframes tag-pop { 0%,100%{opacity:0;transform:translateY(4px)} 30%,70%{opacity:1;transform:translateY(0)} }
+      `}</style>
+      {/* Mini document */}
+      <div style={{ position: "relative", width: 40, height: 52, borderRadius: 6, background: "rgba(139,109,255,0.08)", border: "1px solid rgba(139,109,255,0.2)", flexShrink: 0, overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, right: 0, width: 10, height: 10, background: "linear-gradient(225deg, #0a0a0f 50%, rgba(139,109,255,0.2) 50%)" }} />
+        {[8, 16, 24, 32, 40].map((top, i) => (
+          <div key={i} style={{ position: "absolute", left: 4, right: i === 0 ? 12 : 4, top, height: 2.5, borderRadius: 2, background: "rgba(255,255,255,0.12)", animation: `doc-line2 ${1.2 + i * 0.15}s ease-in-out infinite`, animationDelay: `${i * 0.12}s` }} />
+        ))}
+        <div style={{ position: "absolute", left: 0, right: 0, height: 1.5, background: "linear-gradient(90deg, transparent, #8b6dff, transparent)", animation: "doc-scan2 2s ease-in-out infinite", boxShadow: "0 0 5px rgba(139,109,255,0.8)" }} />
+      </div>
+      {/* Arrow */}
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: "arrow-move 1.5s ease-in-out infinite", flexShrink: 0 }}>
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="#8b6dff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {/* Extracted tags */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {[["Bio", 0], ["Skills", 0.4], ["Exp", 0.8]].map(([label, delay]) => (
+          <div key={label} style={{ fontSize: 10, fontFamily: "var(--font-jetbrains-mono,monospace)", color: "#8b6dff", background: "rgba(139,109,255,0.12)", border: "1px solid rgba(139,109,255,0.25)", borderRadius: 4, padding: "2px 6px", animation: "tag-pop 2.4s ease-in-out infinite", animationDelay: `${delay}s` }}>
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function RocketAnim() {
+  return (
+    <div style={{ marginBottom: 20, height: 56, display: "flex", alignItems: "center", gap: 10 }}>
+      <style>{`
+        @keyframes link-glow { 0%,100%{opacity:.4;letterSpacing:"0"} 50%{opacity:1} }
+        @keyframes send-ping { 0%{transform:scale(1);opacity:1} 100%{transform:scale(2.5);opacity:0} }
+        @keyframes avatar-pop { 0%,100%{opacity:.3;transform:scale(.9)} 50%{opacity:1;transform:scale(1)} }
+      `}</style>
+      {/* Share link box */}
+      <div style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(139,109,255,0.25)", borderRadius: 8, padding: "7px 10px", fontFamily: "var(--font-jetbrains-mono,monospace)", fontSize: 11, color: "#8b6dff", animation: "link-glow 2s ease-in-out infinite", overflow: "hidden", whiteSpace: "nowrap" }}>
+        {baseDomain}/you
+      </div>
+      {/* Send button with ping */}
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(139,109,255,0.3)", animation: "send-ping 1.8s ease-out infinite" }} />
+        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#8b6dff", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </div>
+      {/* Recruiter avatars */}
+      <div style={{ display: "flex" }}>
+        {["R","A","M"].map((l, i) => (
+          <div key={l} style={{ width: 24, height: 24, borderRadius: "50%", background: `rgba(139,109,255,${0.2 + i * 0.15})`, border: "1.5px solid #0a0a0f", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#8b6dff", marginLeft: i === 0 ? 0 : -8, animation: `avatar-pop 2s ease-in-out infinite`, animationDelay: `${i * 0.3}s` }}>
+            {l}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const STEP_ANIMS = [HandleAnim, DocAnim, RocketAnim]
+
 function HowItWorks() {
   return (
     <section id="how-it-works" style={{ padding: "80px 0" }}>
@@ -353,53 +436,29 @@ function HowItWorks() {
           </h2>
         </div>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 24,
-          }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}
           className="steps-grid"
         >
-          {STEPS.map((step) => (
-            <div
-              key={step.num}
-              style={{
-                background: surface,
-                border: `1px solid ${border}`,
-                borderRadius: radius,
-                padding: "32px 28px",
-              }}
-            >
+          {STEPS.map((step, i) => {
+            const Anim = STEP_ANIMS[i]
+            return (
               <div
-                style={{
-                  fontFamily: "var(--font-jetbrains-mono, monospace)",
-                  fontSize: 11,
-                  color: accent,
-                  letterSpacing: "0.1em",
-                  marginBottom: 16,
-                  fontWeight: 500,
-                }}
+                key={step.num}
+                style={{ background: surface, border: `1px solid ${border}`, borderRadius: radius, padding: "32px 28px" }}
               >
-                {step.num}
+                <div style={{ fontFamily: "var(--font-jetbrains-mono, monospace)", fontSize: 11, color: accent, letterSpacing: "0.1em", marginBottom: 16, fontWeight: 500 }}>
+                  {step.num}
+                </div>
+                <Anim />
+                <h3 style={{ fontFamily: "var(--font-space-grotesk, system-ui, sans-serif)", fontWeight: 600, fontSize: 18, color: text, margin: "0 0 10px", letterSpacing: "-0.02em" }}>
+                  {step.title}
+                </h3>
+                <p style={{ fontSize: 14, color: muted, lineHeight: 1.6, margin: 0 }}>
+                  {step.desc}
+                </p>
               </div>
-              <div style={{ fontSize: 28, marginBottom: 14 }}>{step.icon}</div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-space-grotesk, system-ui, sans-serif)",
-                  fontWeight: 600,
-                  fontSize: 18,
-                  color: text,
-                  margin: "0 0 10px",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {step.title}
-              </h3>
-              <p style={{ fontSize: 14, color: muted, lineHeight: 1.6, margin: 0 }}>
-                {step.desc}
-              </p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>
@@ -858,14 +917,7 @@ function Footer() {
       >
         {/* Brand */}
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-          <div
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 5,
-              background: `linear-gradient(135deg, ${accent} 0%, #6040e0 100%)`,
-            }}
-          />
+          <Image src="/logo.png" alt="Proxy-Me" width={22} height={22} style={{ borderRadius: 5 }} />
           <span
             style={{
               fontFamily: "var(--font-space-grotesk, system-ui, sans-serif)",
