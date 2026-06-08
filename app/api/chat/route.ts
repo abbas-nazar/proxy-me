@@ -67,24 +67,24 @@ export async function POST(req: Request) {
       set: { messages: plainMessages, updatedAt: sql`now()` },
     })
 
-  // On first message, link the unlinked contact for this session to the session row
-  if (isFirstMessage && resolvedEmail) {
-    await db.update(visitorContacts)
-      .set({ sessionId })
-      .where(and(
-        eq(visitorContacts.userId, user.id),
-        eq(visitorContacts.email, resolvedEmail),
-        isNull(visitorContacts.sessionId),
-      ))
-  } else if (isFirstMessage && resolvedName && !resolvedEmail) {
-    // Name-only contact: match by name, link to session
-    await db.update(visitorContacts)
-      .set({ sessionId })
-      .where(and(
-        eq(visitorContacts.userId, user.id),
-        eq(visitorContacts.name, resolvedName),
-        isNull(visitorContacts.sessionId),
-      ))
+  // On first message, upsert the contact with the now-valid sessionId
+  if (isFirstMessage && (resolvedName || resolvedEmail)) {
+    if (resolvedEmail) {
+      // Upsert by email — update if exists, insert if not
+      const [existing] = await db.select({ id: visitorContacts.id })
+        .from(visitorContacts)
+        .where(and(eq(visitorContacts.userId, user.id), eq(visitorContacts.email, resolvedEmail)))
+      if (existing) {
+        await db.update(visitorContacts)
+          .set({ sessionId, name: resolvedName ?? undefined })
+          .where(eq(visitorContacts.id, existing.id))
+      } else {
+        await db.insert(visitorContacts).values({ userId: user.id, sessionId, name: resolvedName, email: resolvedEmail })
+      }
+    } else {
+      // Name only — insert a new row linked to this session
+      await db.insert(visitorContacts).values({ userId: user.id, sessionId, name: resolvedName, email: null })
+    }
   }
 
   const result = streamText({

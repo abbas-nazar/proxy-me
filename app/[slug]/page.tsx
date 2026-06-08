@@ -39,7 +39,7 @@ export default async function PublicProfilePage({ params }: Props) {
             This profile is private
           </h1>
           <p style={{ margin: 0, fontSize: 13, color: "#6e6e82", lineHeight: 1.6 }}>
-            {user.displayName ?? slug} hasn&apos;t made their profile public yet.
+            {user.displayName ?? slug}{" "}hasn&apos;t made their profile public yet.
           </p>
         </div>
       </main>

@@ -78,25 +78,24 @@ function Avatar({ name, imageUrl }: { name: string; imageUrl?: string }) {
 
 
 export default function ChatInterface({ slug, displayName, headline, suggestedQuestions = [], contactCollection, imageUrl }: Props) {
-  // --- session state ---
-  // Initialise with a fresh UUID synchronously; overwritten if a saved session is resumed
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID())
+  const sessionIdRef = useRef(sessionId)
+  useEffect(() => { sessionIdRef.current = sessionId }, [sessionId])
   const [contactCaptured, setContactCaptured] = useState(false)
   const [showContactPrompt, setShowContactPrompt] = useState(false)
   const [contactDone, setContactDone] = useState(false)
+  const [contactDoneAfterIndex, setContactDoneAfterIndex] = useState<number | null>(null)
   const [contactName, setContactName] = useState("")
   const [contactEmail, setContactEmail] = useState("")
   const [contactSaving, setContactSaving] = useState(false)
   const [contactError, setContactError] = useState("")
 
-  // --- intro form (name required, email optional) ---
   const [introName, setIntroName] = useState("")
   const [introEmail, setIntroEmail] = useState("")
   const [introNameError, setIntroNameError] = useState(false)
   const [introEmailError, setIntroEmailError] = useState(false)
   const [introDone, setIntrosDone] = useState(false)
 
-  // --- resume banner ---
   const [resumeSession, setResumeSession] = useState<SavedSession | null>(null)
   const pendingRestoreRef = useRef<SavedSession | null>(null)
 
@@ -105,46 +104,53 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Load saved session from localStorage on mount
+  // On mount: show resume banner if there are saved messages, otherwise just pre-fill name/email
   useEffect(() => {
     const raw = localStorage.getItem(LS_SESSION(slug))
-    if (raw) {
-      try {
-        const saved: SavedSession = JSON.parse(raw)
-        const sevenDays = 7 * 24 * 60 * 60 * 1000
-        const expired = Date.now() - (saved.savedAt ?? 0) > sevenDays
-        if (expired) {
-          localStorage.removeItem(LS_SESSION(slug))
-        } else if (saved.sessionId) {
-          if (saved.name) setIntroName(saved.name)
-          if (saved.email) { setIntroEmail(saved.email); setContactEmail(saved.email) }
-          if (saved.email) setContactCaptured(true)
-          if (saved.messages?.length > 0) {
-            // Returning user with messages — restore full state
-            if (saved.introDone) setIntrosDone(true)
-            setResumeSession(saved)
-            return
-          }
-          // No messages yet — restore session ID but don't skip the intro form
-          // unless they already provided their email (contact captured)
-          if (saved.email) setIntrosDone(true)
-          setSessionId(saved.sessionId)
-        }
-      } catch { /* ignore */ }
-    }
+    if (!raw) return
+    try {
+      const saved: SavedSession = JSON.parse(raw)
+      const sevenDays = 7 * 24 * 60 * 60 * 1000
+      if (Date.now() - (saved.savedAt ?? 0) > sevenDays) {
+        localStorage.removeItem(LS_SESSION(slug))
+        return
+      }
+      if (saved.messages?.length > 0) {
+        // Has prior messages — show resume banner
+        setResumeSession(saved)
+      } else {
+        // No messages yet — just pre-fill intro form, start fresh session
+        if (saved.name) setIntroName(saved.name)
+        if (saved.email) setIntroEmail(saved.email)
+      }
+    } catch { /* ignore */ }
   }, [slug])
 
   function startFresh() {
     const newId = crypto.randomUUID()
+    sessionIdRef.current = newId
     setSessionId(newId)
     setResumeSession(null)
     setIntrosDone(false)
+    setIntroName("")
+    setIntroEmail("")
+    setContactName("")
+    setContactEmail("")
+    contactNameRef.current = ""
+    contactEmailRef.current = ""
+    introNameRef.current = ""
+    introEmailRef.current = ""
+    setContactCaptured(false)
+    setContactDone(false)
+    setShowContactPrompt(false)
+    localStorage.removeItem(LS_SESSION(slug))
   }
 
   function continueSession(saved: SavedSession) {
+    sessionIdRef.current = saved.sessionId
     setSessionId(saved.sessionId)
-    if (saved.name) { setIntroName(saved.name); setContactName(saved.name) }
-    if (saved.email) { setIntroEmail(saved.email); setContactEmail(saved.email); setContactCaptured(true) }
+    if (saved.name) { setIntroName(saved.name); setContactName(saved.name); introNameRef.current = saved.name; contactNameRef.current = saved.name }
+    if (saved.email) { setIntroEmail(saved.email); setContactEmail(saved.email); introEmailRef.current = saved.email; contactEmailRef.current = saved.email; setContactCaptured(true) }
     pendingRestoreRef.current = saved
     setResumeSession(null)
     setIntrosDone(true)
@@ -164,13 +170,12 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       api: "/api/chat",
       body: {
         slug,
-        sessionId,
+        get sessionId() { return sessionIdRef.current },
         get visitorName() { return contactNameRef.current || introNameRef.current || null },
         get visitorEmail() { return contactEmailRef.current || introEmailRef.current || null },
       },
     }),
   })
-
 
   // Restore messages after "Continue conversation" is clicked
   useEffect(() => {
@@ -258,8 +263,10 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       if (!res.ok) throw new Error()
       setContactCaptured(true)
       setContactDone(true)
+      setContactDoneAfterIndex(messages.length - 1)
       setShowContactPrompt(false)
-      if (!introEmail) setIntroEmail(emailToUse)
+      if (!introEmail) { setIntroEmail(emailToUse); introEmailRef.current = emailToUse }
+      contactEmailRef.current = emailToUse
     } catch {
       setContactError("Something went wrong. Please try again.")
     } finally {
@@ -279,15 +286,9 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
 
     const name = introName.trim()
     const email = introEmail.trim()
-    if (name || email) {
-      if (email) { setContactEmail(email); setContactCaptured(true) }
-      if (name) setContactName(name)
-      fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, name: name || null, email: email || null, sessionId: null }),
-      }).catch(() => {})
-    }
+    if (email) { setContactEmail(email); contactEmailRef.current = email; setContactCaptured(true) }
+    if (name) { setContactName(name); contactNameRef.current = name }
+    // Contact is saved server-side on the first chat message (once session row exists)
     setIntrosDone(true)
   }
 
@@ -403,13 +404,18 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
           )}
 
           {/* Messages */}
-          {messages.map((msg) => {
+          {messages.map((msg, i) => {
             const isUser = msg.role === "user"
             const text = msg.parts.filter((p) => p.type === "text").map((p) => p.text).join("").replace(COLLECT_TOKEN, "").trim()
             if (!text) return null
             return (
               <div key={msg.id} style={{ marginBottom: 12 }}>
                 <ChatBubble role={isUser ? "user" : "assistant"} text={text} renderMarkdown={!isUser} />
+                {contactDone && contactDoneAfterIndex === i && (
+                  <div style={{ marginTop: 12 }}>
+                    <ChatBubble role="assistant" text="Got it, I'll make sure to follow up." renderMarkdown={false} />
+                  </div>
+                )}
               </div>
             )
           })}
