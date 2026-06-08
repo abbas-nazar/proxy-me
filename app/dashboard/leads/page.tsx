@@ -1,7 +1,7 @@
 import { getOrRedirectUser } from "@/app/actions/onboarding"
 import { db } from "@/lib/db"
 import { visitorContacts } from "@/db/schema"
-import { eq, desc, isNotNull, and } from "drizzle-orm"
+import { eq, desc, asc, isNotNull, and } from "drizzle-orm"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Paper from "@mui/material/Paper"
@@ -11,15 +11,25 @@ import TableBody from "@mui/material/TableBody"
 import TableRow from "@mui/material/TableRow"
 import TableCell from "@mui/material/TableCell"
 import Divider from "@mui/material/Divider"
+import SortableHeader from "./SortableHeader"
 
-export default async function LeadsPage() {
+type SortCol = "name" | "email" | "date"
+type SortDir = "asc" | "desc"
+
+export default async function LeadsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const user = await getOrRedirectUser()
+  const sp = await searchParams
+  const col = (sp.sort ?? "date") as SortCol
+  const dir = (sp.dir ?? "desc") as SortDir
+  const order = dir === "asc" ? asc : desc
+
+  const colMap = { name: visitorContacts.name, email: visitorContacts.email, date: visitorContacts.createdAt }
 
   const contacts = await db
     .select()
     .from(visitorContacts)
     .where(and(eq(visitorContacts.userId, user.id), isNotNull(visitorContacts.email)))
-    .orderBy(desc(visitorContacts.createdAt))
+    .orderBy(order(colMap[col]))
 
   return (
     <Box sx={{ px: { xs: 2, md: 5 }, py: 4, maxWidth: 900, mx: "auto" }}>
@@ -62,14 +72,12 @@ export default async function LeadsPage() {
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: "#1b1b2a" }}>
-                  {["Name", "Email", "Date", "Conversation"].map((col) => (
-                    <TableCell
-                      key={col}
-                      sx={{ fontWeight: 700, fontSize: 11, color: "text.disabled", letterSpacing: "0.06em", textTransform: "uppercase", py: 1.5 }}
-                    >
-                      {col}
-                    </TableCell>
-                  ))}
+                  <SortableHeader col="name" label="Name" active={col} dir={dir} />
+                  <SortableHeader col="email" label="Email" active={col} dir={dir} />
+                  <SortableHeader col="date" label="Date" active={col} dir={dir} />
+                  <TableCell sx={{ fontWeight: 700, fontSize: 11, color: "text.disabled", letterSpacing: "0.06em", textTransform: "uppercase", py: 1.5 }}>
+                    Conversation
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -108,7 +116,7 @@ export default async function LeadsPage() {
 
           {/* Mobile cards */}
           <Box sx={{ display: { xs: "flex", sm: "none" }, flexDirection: "column", gap: 1.5 }}>
-            {contacts.map((c, i) => (
+            {contacts.map((c) => (
               <Paper key={c.id} variant="outlined" sx={{ borderRadius: 2, px: 2, py: 1.5 }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.5 }}>
                   <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
