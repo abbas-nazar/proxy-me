@@ -220,8 +220,8 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     if (!introDone && messages.length === 0) return
     const saved: SavedSession = {
       sessionId,
-      name: introName,
-      email: introEmail,
+      name: contactName || introName,
+      email: contactEmail || introEmail,
       introDone,
       contactCaptured,
       messages: messages.map((m) => ({
@@ -259,6 +259,7 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
       setContactCaptured(true)
       setContactDone(true)
       setShowContactPrompt(false)
+      if (!introEmail) setIntroEmail(emailToUse)
     } catch {
       setContactError("Something went wrong. Please try again.")
     } finally {

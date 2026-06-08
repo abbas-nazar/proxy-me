@@ -67,12 +67,22 @@ export async function POST(req: Request) {
       set: { messages: plainMessages, updatedAt: sql`now()` },
     })
 
-  // On first message, link any unlinked contact for this user+slug to this session
-  if (isFirstMessage) {
+  // On first message, link the unlinked contact for this session to the session row
+  if (isFirstMessage && resolvedEmail) {
     await db.update(visitorContacts)
       .set({ sessionId })
       .where(and(
         eq(visitorContacts.userId, user.id),
+        eq(visitorContacts.email, resolvedEmail),
+        isNull(visitorContacts.sessionId),
+      ))
+  } else if (isFirstMessage && resolvedName && !resolvedEmail) {
+    // Name-only contact: match by name, link to session
+    await db.update(visitorContacts)
+      .set({ sessionId })
+      .where(and(
+        eq(visitorContacts.userId, user.id),
+        eq(visitorContacts.name, resolvedName),
         isNull(visitorContacts.sessionId),
       ))
   }
