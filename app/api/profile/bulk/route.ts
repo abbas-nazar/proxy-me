@@ -27,7 +27,11 @@ Rules:
 - Return ONLY valid JSON matching the exact same structure as the inputs. No explanation, no markdown, just the JSON object.`,
   })
   const cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")
-  return JSON.parse(cleaned)
+  try {
+    return JSON.parse(cleaned)
+  } catch {
+    return incoming
+  }
 }
 
 export async function POST(req: Request) {

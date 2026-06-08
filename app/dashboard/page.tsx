@@ -27,7 +27,6 @@ export default async function DashboardPage() {
 
   const quickActions = [
     { label: "Edit profile", description: "Update what your proxy knows about you.", href: "/dashboard/sections" },
-    { label: "Import CV", description: "Upload a PDF to automatically fill in your profile sections.", href: "/dashboard/import" },
     { label: "Settings", description: "Configure tone, suggested questions, and contact collection.", href: "/dashboard/settings" },
   ]
 
