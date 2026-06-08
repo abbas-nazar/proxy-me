@@ -8,7 +8,7 @@ const MUTED = "rgba(255,255,255,0.55)"
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = []
   // links [text](url), bold, italic, inline code
-  const re = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(\*\*|__)(.*?)\3|(\*|_)(.*?)\5|(`)(.*?)\7/g
+  const re = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)|(https?:\/\/[^\s<>"]+)|(\*\*|__)(.*?)\4|(\*|_)(.*?)\6|(`)(.*?)\8/g
   let last = 0
   let match: RegExpExecArray | null
   let key = 0
@@ -16,7 +16,7 @@ function parseInline(text: string): React.ReactNode[] {
   while ((match = re.exec(text)) !== null) {
     if (match.index > last) parts.push(text.slice(last, match.index))
     if (match[1] !== undefined) {
-      // link
+      // [text](url)
       parts.push(
         <a key={key++} href={match[2]} target="_blank" rel="noopener noreferrer"
           style={{ color: "rgba(255,255,255,0.75)", textDecoration: "underline", textUnderlineOffset: 2 }}>
@@ -24,13 +24,21 @@ function parseInline(text: string): React.ReactNode[] {
         </a>
       )
     } else if (match[3]) {
-      parts.push(<strong key={key++} style={{ fontWeight: 600, color: TEXT }}>{match[4]}</strong>)
-    } else if (match[5]) {
-      parts.push(<em key={key++}>{match[6]}</em>)
-    } else if (match[7]) {
+      // bare URL
+      parts.push(
+        <a key={key++} href={match[3]} target="_blank" rel="noopener noreferrer"
+          style={{ color: "rgba(255,255,255,0.75)", textDecoration: "underline", textUnderlineOffset: 2 }}>
+          {match[3]}
+        </a>
+      )
+    } else if (match[4]) {
+      parts.push(<strong key={key++} style={{ fontWeight: 600, color: TEXT }}>{match[5]}</strong>)
+    } else if (match[6]) {
+      parts.push(<em key={key++}>{match[7]}</em>)
+    } else if (match[8]) {
       parts.push(
         <code key={key++} style={{ fontFamily: "monospace", fontSize: "0.9em", background: "rgba(255,255,255,0.1)", borderRadius: 4, padding: "1px 5px" }}>
-          {match[8]}
+          {match[9]}
         </code>
       )
     }
