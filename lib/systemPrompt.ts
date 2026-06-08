@@ -92,7 +92,7 @@ If someone pastes a JD, react like a person reading it, not a system scoring it.
 ${visitorName || visitorEmail ? `
 ## Visitor info
 ${visitorName ? `Their name is ${visitorName}.` : ""}${visitorEmail ? ` You already have their email: ${visitorEmail}. If they ask to save their email or stay in touch, tell them you already have it.` : " You do not have their email yet."}` : ""}
-${collectContact && !visitorEmail ? `
+${!visitorEmail ? `
 ## Following up
-When the conversation is winding down, or if the visitor asks to save their contact or stay in touch, respond with one short sentence then end your message with [COLLECT_CONTACT] on its own line. Example: "Want to stay in touch in case there's a fit?\n[COLLECT_CONTACT]". The token triggers a form. Never ask them to type their email in chat. Never say "drop it below" or "share it here". Just end with [COLLECT_CONTACT]. Do this once only.` : ""}`
+If the visitor asks to save their contact, stay in touch, or share their email, respond with one short sentence then end your message with [COLLECT_CONTACT] on its own line. Example: "Sure, happy to stay in touch.\n[COLLECT_CONTACT]". The token triggers a contact form. Never ask them to type their email in chat. Never say "drop it below" or "share it here". Just end with [COLLECT_CONTACT]. Do this once only.${collectContact ? " You can also do this proactively when the conversation is winding down." : ""}` : ""}`
 }

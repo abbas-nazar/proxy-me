@@ -193,16 +193,16 @@ export default function ChatInterface({ slug, displayName, headline, suggestedQu
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, showContactPrompt])
 
-  // Detect [COLLECT_CONTACT] token
+  // Detect [COLLECT_CONTACT] token — always show form when AI emits it, regardless of setting
   useEffect(() => {
-    if (!contactCollection?.enabled || contactCaptured) return
+    if (contactCaptured) return
     const lastMsg = messages[messages.length - 1]
     if (!lastMsg || lastMsg.role !== "assistant") return
     const text = lastMsg.parts?.filter((p) => p.type === "text").map((p) => p.text).join("") ?? ""
     if (text.includes(COLLECT_TOKEN)) setShowContactPrompt(true)
-  }, [messages, contactCollection, contactCaptured])
+  }, [messages, contactCaptured])
 
-  // Inactivity timer
+  // Inactivity timer — only when contact collection is enabled
   const startInactivityTimer = useCallback(() => {
     if (!contactCollection?.enabled || contactCaptured) return
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current)

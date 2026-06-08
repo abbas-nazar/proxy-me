@@ -30,20 +30,38 @@ export async function POST(req: Request) {
     if (session) validSessionId = sessionId
   }
 
-  // Deduplicate by email if provided — update name/sessionId instead of inserting a duplicate
+  // Try to find existing row for this session first
+  if (validSessionId) {
+    const [bySession] = await db
+      .select()
+      .from(visitorContacts)
+      .where(and(eq(visitorContacts.userId, user.id), eq(visitorContacts.sessionId, validSessionId)))
+
+    if (bySession) {
+      await db.update(visitorContacts)
+        .set({
+          name: trimmedName ?? bySession.name,
+          email: trimmedEmail ?? bySession.email,
+        })
+        .where(eq(visitorContacts.id, bySession.id))
+      return NextResponse.json({ ok: true })
+    }
+  }
+
+  // Deduplicate by email if provided
   if (trimmedEmail) {
-    const [existing] = await db
+    const [byEmail] = await db
       .select()
       .from(visitorContacts)
       .where(and(eq(visitorContacts.userId, user.id), eq(visitorContacts.email, trimmedEmail)))
 
-    if (existing) {
+    if (byEmail) {
       await db.update(visitorContacts)
         .set({
-          name: trimmedName ?? existing.name,
-          sessionId: validSessionId ?? existing.sessionId,
+          name: trimmedName ?? byEmail.name,
+          sessionId: validSessionId ?? byEmail.sessionId,
         })
-        .where(eq(visitorContacts.id, existing.id))
+        .where(eq(visitorContacts.id, byEmail.id))
       return NextResponse.json({ ok: true })
     }
   }
