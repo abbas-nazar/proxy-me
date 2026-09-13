@@ -10,6 +10,8 @@ export const users = pgTable("users", {
   personality: text("personality"),
   suggestedQuestions: jsonb("suggested_questions").default([]),
   contactCollection: jsonb("contact_collection").default({ enabled: false, requireName: false, requireEmail: false }),
+  voiceId: text("voice_id"),
+  voiceCreatedAt: timestamp("voice_created_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 })
 
