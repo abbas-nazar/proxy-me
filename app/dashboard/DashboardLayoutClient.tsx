@@ -20,7 +20,6 @@ import ChatIcon from "@mui/icons-material/Chat"
 import SettingsIcon from "@mui/icons-material/Settings"
 import FileUploadIcon from "@mui/icons-material/FileUpload"
 import PeopleIcon from "@mui/icons-material/People"
-import GraphicEqIcon from "@mui/icons-material/GraphicEq"
 import OpenInNewIcon from "@mui/icons-material/OpenInNew"
 import MenuIcon from "@mui/icons-material/Menu"
 import Image from "next/image"
@@ -45,7 +44,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     items: [
       { label: "Profile", href: "/dashboard/sections", icon: <PersonIcon fontSize="small" /> },
-      { label: "Voice", href: "/dashboard/voice", icon: <GraphicEqIcon fontSize="small" /> },
     ],
   },
   {
