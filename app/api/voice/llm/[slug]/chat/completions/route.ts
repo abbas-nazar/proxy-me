@@ -58,13 +58,13 @@ This is a live voice call. Your reply will be spoken out loud.
 - If there is silence or the transcript is unclear, ask "Sorry, could you say that again?" once. Do not fill silence with rambling.
 `
 
-export async function POST(req: Request) {
+export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   if (!verifySecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const url = new URL(req.url)
-  const slug = url.searchParams.get("slug")?.trim()
+  const { slug: rawSlug } = await params
+  const slug = rawSlug?.trim()
   if (!slug) {
     return NextResponse.json({ error: "Missing slug parameter" }, { status: 400 })
   }
